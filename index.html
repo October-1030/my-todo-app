@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>我的待办清单</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- PWA相关 -->
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIuaIkeeahOW+heWKnea4heWNlSIsCiAgInNob3J0X25hbWUiOiAi5b6F5YqhIiwKICAic3RhcnRfdXJsIjogIi4iLAogICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLAogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiM2NjdlZWEiLAogICJ0aGVtZV9jb2xvciI6ICIjNjY3ZWVhIiwKICAiaWNvbnMiOiBbCiAgICB7CiAgICAgICJzcmMiOiAiZGF0YTppbWFnZS9zdmcreG1sO2Jhc2U2NCxQSE4yWnlCNGJXeHVjejBpYUhSMGNEb3ZMM2QzZHk1M015NXZjbWN2TWpBd01DOXpkbWNpSUhacFpYZENiM2c5SWpBZ01DQXlOalFnTWpZMElpQjNhV1IwYUQwaU1qWTBJaUJvWldsbmFIUTlJakkyTkNJK1BIQmhkR2dnWkQwaWJUa3pMakUzSURNMmRUSXdMalkzTFRJd0xqWTNNVFl1TXpNdE5EVXVNEQ==IiwKICAgICAgInNpemVzIjogIjI1NngyNTYiLAogICAgICAidHlwZSI6ICJpbWFnZS9zdmcreG1sIgogICAgfQogIF0KfQ==">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="我的待办">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-attachment: fixed;
+            overscroll-behavior: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .app-container {
+            max-height: 100vh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        }
+        
+        .task-item {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .task-item:active {
+            transform: scale(0.98);
+        }
+        
+        .task-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .gradient-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            color: white;
+            transition: all 0.3s ease;
+        }
+        
+        .gradient-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .gradient-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .filter-btn-active {
+            background: linear-gradient(45deg, #667eea, #764ba2) !important;
+            color: white !important;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+        
+        @keyframes floating {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .glow-input {
+            transition: all 0.3s ease;
+        }
+        
+        .glow-input:focus {
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+            border-color: #667eea;
+        }
+        
+        @media (max-width: 640px) {
+            .app-container {
+                padding: 1rem;
+            }
+            
+            .task-item {
+                padding: 1rem;
+            }
+            
+            .glass-card {
+                padding: 1.5rem;
+            }
+        }
+        
+        .status-bar-spacer {
+            height: env(safe-area-inset-top);
+            background: transparent;
+        }
+        
+        .bottom-spacer {
+            height: env(safe-area-inset-bottom);
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div class="status-bar-spacer"></div>
+    
+    <div class="app-container max-w-2xl mx-auto p-4">
+        <!-- 标题 -->
+        <div class="text-center mb-8 floating">
+            <h1 class="text-4xl font-bold text-white mb-3 drop-shadow-lg">✨ 我的待办清单</h1>
+            <p class="text-white/80 text-lg">让生活井井有条，让梦想照进现实</p>
+        </div>
+
+        <!-- 添加任务区域 -->
+        <div class="glass-card rounded-2xl p-6 mb-6">
+            <div class="flex gap-3">
+                <input
+                    type="text"
+                    id="taskInput"
+                    placeholder="✍️ 今天想完成什么..."
+                    class="glow-input flex-1 px-5 py-4 border-2 border-white/30 rounded-xl focus:outline-none focus:border-white/60 bg-white/90 text-gray-800 placeholder-gray-500 text-lg backdrop-blur-sm"
+                />
+                <button
+                    id="addBtn"
+                    class="gradient-btn px-8 py-4 rounded-xl font-semibold text-lg shadow-lg"
+                >
+                    🚀 添加
+                </button>
+            </div>
+        </div>
+
+        <!-- 统计信息 -->
+        <div class="glass-card rounded-2xl p-5 mb-6">
+            <div class="flex justify-between items-center text-white/90 font-medium">
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-white" id="activeCount">0</div>
+                    <div class="text-sm">待办</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-white" id="completedCount">0</div>
+                    <div class="text-sm">已完成</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-white" id="totalCount">0</div>
+                    <div class="text-sm">总计</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 过滤器 -->
+        <div class="flex justify-center gap-3 mb-6">
+            <button class="filter-btn filter-btn-active px-6 py-3 rounded-xl font-semibold transition-all backdrop-blur-sm" data-filter="all">📋 全部</button>
+            <button class="filter-btn px-6 py-3 rounded-xl font-semibold transition-all bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm" data-filter="active">⏰ 待办</button>
+            <button class="filter-btn px-6 py-3 rounded-xl font-semibold transition-all bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm" data-filter="completed">✅ 已完成</button>
+        </div>
+
+        <!-- 任务列表 -->
+        <div id="taskList" class="space-y-4"></div>
+
+        <!-- 清除已完成按钮 -->
+        <div class="mt-8 text-center">
+            <button id="clearCompleted" class="px-6 py-3 text-white/70 hover:text-red-400 transition-all text-lg font-medium bg-white/10 rounded-xl hover:bg-white/20 backdrop-blur-sm" style="display: none;">
+                🗑️ 清理已完成任务
+            </button>
+        </div>
+    </div>
+    
+    <div class="bottom-spacer"></div>
+
+    <script>
+        // 注册Service Worker实现PWA
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('data:application/javascript;base64,c2VsZi5hZGRFdmVudExpc3RlbmVyKCdpbnN0YWxsJywgZnVuY3Rpb24oZXZlbnQpIHsKICBjb25zb2xlLmxvZygnU2VydmljZSBXb3JrZXIgaW5zdGFsbGVkJyk7Cn0pOwoKc2VsZi5hZGRFdmVudExpc3RlbmVyKCdmZXRjaCcsIGZ1bmN0aW9uKGV2ZW50KSB7CiAgZXZlbnQucmVzcG9uZFdpdGgoZmV0Y2goZXZlbnQucmVxdWVzdCkpOwp9KTs=');
+        }
+
+        class TodoApp {
+            constructor() {
+                this.tasks = this.loadTasks();
+                this.currentFilter = 'all';
+                this.init();
+            }
+
+            init() {
+                this.bindEvents();
+                this.render();
+            }
+
+            bindEvents() {
+                document.getElementById('addBtn').addEventListener('click', () => this.addTask());
+                document.getElementById('taskInput').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.addTask();
+                });
+
+                document.querySelectorAll('.filter-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        this.currentFilter = e.target.dataset.filter;
+                        this.updateFilterButtons();
+                        this.render();
+                    });
+                });
+
+                document.getElementById('clearCompleted').addEventListener('click', () => {
+                    this.tasks = this.tasks.filter(task => !task.completed);
+                    this.saveTasks();
+                    this.render();
+                });
+            }
+
+            addTask() {
+                const input = document.getElementById('taskInput');
+                const text = input.value.trim();
+                
+                if (text) {
+                    const newTask = {
+                        id: Date.now(),
+                        text: text,
+                        completed: false,
+                        createdAt: new Date().toLocaleString('zh-CN')
+                    };
+                    
+                    this.tasks.push(newTask);
+                    input.value = '';
+                    this.saveTasks();
+                    this.render();
+                }
+            }
+
+            toggleTask(id) {
+                const task = this.tasks.find(t => t.id === id);
+                if (task) {
+                    task.completed = !task.completed;
+                    this.saveTasks();
+                    this.render();
+                }
+            }
+
+            deleteTask(id) {
+                this.tasks = this.tasks.filter(t => t.id !== id);
+                this.saveTasks();
+                this.render();
+            }
+
+            updateFilterButtons() {
+                document.querySelectorAll('.filter-btn').forEach(btn => {
+                    if (btn.dataset.filter === this.currentFilter) {
+                        btn.className = 'filter-btn filter-btn-active px-6 py-3 rounded-xl font-semibold transition-all backdrop-blur-sm';
+                    } else {
+                        btn.className = 'filter-btn px-6 py-3 rounded-xl font-semibold transition-all bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm';
+                    }
+                });
+            }
+
+            render() {
+                let filteredTasks = this.tasks;
+                if (this.currentFilter === 'active') {
+                    filteredTasks = this.tasks.filter(t => !t.completed);
+                } else if (this.currentFilter === 'completed') {
+                    filteredTasks = this.tasks.filter(t => t.completed);
+                }
+
+                const taskList = document.getElementById('taskList');
+                if (filteredTasks.length === 0) {
+                    let emptyMessage = '🌟 还没有任务，添加一个开始精彩的一天吧！';
+                    let emoji = '🎯';
+                    if (this.currentFilter === 'active') {
+                        emptyMessage = '🎉 太棒了！所有任务都完成了！';
+                        emoji = '🏆';
+                    }
+                    if (this.currentFilter === 'completed') {
+                        emptyMessage = '💪 还没有完成的任务，加油！';
+                        emoji = '⚡';
+                    }
+                    
+                    taskList.innerHTML = `
+                        <div class="text-center py-16 text-white/80">
+                            <div class="text-6xl mb-4 floating">${emoji}</div>
+                            <div class="text-xl font-medium">${emptyMessage}</div>
+                        </div>
+                    `;
+                } else {
+                    taskList.innerHTML = filteredTasks.map(task => `
+                        <div class="task-item rounded-2xl p-5 flex items-center gap-4 ${task.completed ? 'opacity-60' : ''}">
+                            <button 
+                                onclick="todoApp.toggleTask(${task.id})"
+                                class="flex-shrink-0 w-8 h-8 rounded-full border-3 flex items-center justify-center transition-all font-bold text-lg ${
+                                    task.completed 
+                                        ? 'bg-gradient-to-r from-green-400 to-green-600 border-green-500 text-white shadow-lg' 
+                                        : 'border-gray-300 hover:border-green-400 hover:bg-green-50 hover:scale-110'
+                                }"
+                            >
+                                ${task.completed ? '✓' : ''}
+                            </button>
+                            
+                            <div class="flex-1">
+                                <p class="text-gray-800 text-lg font-medium ${task.completed ? 'line-through text-gray-500' : ''}">
+                                    ${task.text}
+                                </p>
+                                <p class="text-sm text-gray-400 mt-1 flex items-center gap-1">
+                                    📅 ${task.createdAt}
+                                </p>
+                            </div>
+                            
+                            <button 
+                                onclick="todoApp.deleteTask(${task.id})"
+                                class="flex-shrink-0 p-3 text-gray-400 hover:text-red-500 transition-all hover:bg-red-50 rounded-xl hover:scale-110"
+                            >
+                                <span class="text-xl">🗑️</span>
+                            </button>
+                        </div>
+                    `).join('');
+                }
+
+                const activeCount = this.tasks.filter(t => !t.completed).length;
+                const completedCount = this.tasks.filter(t => t.completed).length;
+                
+                document.getElementById('activeCount').textContent = activeCount;
+                document.getElementById('completedCount').textContent = completedCount;
+                document.getElementById('totalCount').textContent = this.tasks.length;
+
+                document.getElementById('clearCompleted').style.display = completedCount > 0 ? 'block' : 'none';
+            }
+
+            loadTasks() {
+                try {
+                    const saved = localStorage.getItem('todoTasks');
+                    return saved ? JSON.parse(saved) : [];
+                } catch (error) {
+                    console.log('读取本地数据失败');
+                    return [];
+                }
+            }
+
+            saveTasks() {
+                try {
+                    localStorage.setItem('todoTasks', JSON.stringify(this.tasks));
+                } catch (error) {
+                    console.log('保存数据失败');
+                }
+            }
+        }
+
+        const todoApp = new TodoApp();
+    </script>
+</body>
+</html>
