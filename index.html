@@ -99,6 +99,22 @@
             border-color: #667eea;
         }
         
+        .task-overdue {
+            border-left: 4px solid #ef4444;
+        }
+        
+        .task-today {
+            border-left: 4px solid #f59e0b;
+        }
+        
+        .task-future {
+            border-left: 4px solid #10b981;
+        }
+        
+        .task-repeat {
+            border-left: 4px solid #8b5cf6;
+        }
+        
         @media (max-width: 640px) {
             .app-container {
                 padding: 1rem;
@@ -121,6 +137,18 @@
         .bottom-spacer {
             height: env(safe-area-inset-bottom);
         }
+        
+        .task-section {
+            margin-bottom: 1.5rem;
+        }
+        
+        .section-title {
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            padding-left: 0.5rem;
+        }
     </style>
 </head>
 <body class="min-h-screen">
@@ -128,56 +156,77 @@
     
     <div class="app-container max-w-2xl mx-auto p-4">
         <!-- 标题 -->
-        <div class="text-center mb-8 floating">
+        <div class="text-center mb-6 floating">
             <h1 class="text-4xl font-bold text-white mb-3 drop-shadow-lg">✨ 我的待办清单</h1>
             <p class="text-white/80 text-lg">让生活井井有条，让梦想照进现实</p>
         </div>
 
         <!-- 添加任务区域 -->
         <div class="glass-card rounded-2xl p-6 mb-6">
-            <div class="flex gap-3">
+            <div class="space-y-4">
                 <input
                     type="text"
                     id="taskInput"
                     placeholder="✍️ 今天想完成什么..."
-                    class="glow-input flex-1 px-5 py-4 border-2 border-white/30 rounded-xl focus:outline-none focus:border-white/60 bg-white/90 text-gray-800 placeholder-gray-500 text-lg backdrop-blur-sm"
+                    class="glow-input w-full px-5 py-4 border-2 border-white/30 rounded-xl focus:outline-none focus:border-white/60 bg-white/90 text-gray-800 placeholder-gray-500 text-lg backdrop-blur-sm"
                 />
-                <button
-                    id="addBtn"
-                    class="gradient-btn px-8 py-4 rounded-xl font-semibold text-lg shadow-lg"
-                >
-                    🚀 添加
-                </button>
+                
+                <!-- 任务选项 -->
+                <div class="flex gap-3 flex-wrap">
+                    <input
+                        type="date"
+                        id="taskDate"
+                        class="px-3 py-2 border border-white/30 rounded-lg bg-white/80 text-gray-700 text-sm"
+                    />
+                    <select id="taskRepeat" class="px-3 py-2 border border-white/30 rounded-lg bg-white/80 text-gray-700 text-sm">
+                        <option value="none">不重复</option>
+                        <option value="daily">每天</option>
+                        <option value="weekly">每周</option>
+                        <option value="monthly">每月</option>
+                    </select>
+                    <button
+                        id="addBtn"
+                        class="gradient-btn px-6 py-2 rounded-lg font-semibold text-lg shadow-lg"
+                    >
+                        🚀 添加
+                    </button>
+                </div>
             </div>
         </div>
 
         <!-- 统计信息 -->
         <div class="glass-card rounded-2xl p-5 mb-6">
-            <div class="flex justify-between items-center text-white/90 font-medium">
-                <div class="text-center">
-                    <div class="text-2xl font-bold text-white" id="activeCount">0</div>
-                    <div class="text-sm">待办</div>
+            <div class="grid grid-cols-4 gap-4 text-white/90 font-medium text-center">
+                <div>
+                    <div class="text-2xl font-bold text-white" id="overdueCount">0</div>
+                    <div class="text-xs">逾期</div>
                 </div>
-                <div class="text-center">
+                <div>
+                    <div class="text-2xl font-bold text-white" id="todayCount">0</div>
+                    <div class="text-xs">今日</div>
+                </div>
+                <div>
+                    <div class="text-2xl font-bold text-white" id="futureCount">0</div>
+                    <div class="text-xs">未来</div>
+                </div>
+                <div>
                     <div class="text-2xl font-bold text-white" id="completedCount">0</div>
-                    <div class="text-sm">已完成</div>
-                </div>
-                <div class="text-center">
-                    <div class="text-2xl font-bold text-white" id="totalCount">0</div>
-                    <div class="text-sm">总计</div>
+                    <div class="text-xs">已完成</div>
                 </div>
             </div>
         </div>
 
         <!-- 过滤器 -->
-        <div class="flex justify-center gap-3 mb-6">
-            <button class="filter-btn filter-btn-active px-6 py-3 rounded-xl font-semibold transition-all backdrop-blur-sm" data-filter="all">📋 全部</button>
-            <button class="filter-btn px-6 py-3 rounded-xl font-semibold transition-all bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm" data-filter="active">⏰ 待办</button>
-            <button class="filter-btn px-6 py-3 rounded-xl font-semibold transition-all bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm" data-filter="completed">✅ 已完成</button>
+        <div class="flex justify-center gap-2 mb-6 flex-wrap">
+            <button class="filter-btn filter-btn-active px-4 py-2 rounded-xl font-medium transition-all backdrop-blur-sm text-sm" data-filter="all">📋 全部</button>
+            <button class="filter-btn px-4 py-2 rounded-xl font-medium transition-all bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm text-sm" data-filter="overdue">🔥 逾期</button>
+            <button class="filter-btn px-4 py-2 rounded-xl font-medium transition-all bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm text-sm" data-filter="today">⏰ 今日</button>
+            <button class="filter-btn px-4 py-2 rounded-xl font-medium transition-all bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm text-sm" data-filter="future">📅 未来</button>
+            <button class="filter-btn px-4 py-2 rounded-xl font-medium transition-all bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm text-sm" data-filter="completed">✅ 已完成</button>
         </div>
 
         <!-- 任务列表 -->
-        <div id="taskList" class="space-y-4"></div>
+        <div id="taskList"></div>
 
         <!-- 清除已完成按钮 -->
         <div class="mt-8 text-center">
@@ -200,11 +249,59 @@
                 this.tasks = this.loadTasks();
                 this.currentFilter = 'all';
                 this.init();
+                this.checkRepeatTasks();
             }
 
             init() {
                 this.bindEvents();
                 this.render();
+                // 设置今天的日期为默认值
+                document.getElementById('taskDate').value = this.getTodayDate();
+            }
+
+            getTodayDate() {
+                const today = new Date();
+                return today.toISOString().split('T')[0];
+            }
+
+            checkRepeatTasks() {
+                // 检查重复任务并创建新的实例
+                const today = this.getTodayDate();
+                this.tasks.forEach(task => {
+                    if (task.repeat !== 'none' && task.dueDate && !task.completed) {
+                        const taskDate = new Date(task.dueDate);
+                        const todayDate = new Date(today);
+                        
+                        if (taskDate < todayDate) {
+                            // 创建新的重复任务
+                            let nextDate = new Date(taskDate);
+                            
+                            switch(task.repeat) {
+                                case 'daily':
+                                    nextDate.setDate(nextDate.getDate() + 1);
+                                    break;
+                                case 'weekly':
+                                    nextDate.setDate(nextDate.getDate() + 7);
+                                    break;
+                                case 'monthly':
+                                    nextDate.setMonth(nextDate.getMonth() + 1);
+                                    break;
+                            }
+                            
+                            if (nextDate.toISOString().split('T')[0] === today) {
+                                const newTask = {
+                                    ...task,
+                                    id: Date.now() + Math.random(),
+                                    completed: false,
+                                    dueDate: today,
+                                    createdAt: new Date().toLocaleString('zh-CN')
+                                };
+                                this.tasks.push(newTask);
+                            }
+                        }
+                    }
+                });
+                this.saveTasks();
             }
 
             bindEvents() {
@@ -230,6 +327,8 @@
 
             addTask() {
                 const input = document.getElementById('taskInput');
+                const dateInput = document.getElementById('taskDate');
+                const repeatSelect = document.getElementById('taskRepeat');
                 const text = input.value.trim();
                 
                 if (text) {
@@ -237,11 +336,15 @@
                         id: Date.now(),
                         text: text,
                         completed: false,
+                        dueDate: dateInput.value || this.getTodayDate(),
+                        repeat: repeatSelect.value,
                         createdAt: new Date().toLocaleString('zh-CN')
                     };
                     
                     this.tasks.push(newTask);
                     input.value = '';
+                    dateInput.value = this.getTodayDate();
+                    repeatSelect.value = 'none';
                     this.saveTasks();
                     this.render();
                 }
@@ -251,6 +354,7 @@
                 const task = this.tasks.find(t => t.id === id);
                 if (task) {
                     task.completed = !task.completed;
+                    task.completedAt = task.completed ? new Date().toLocaleString('zh-CN') : null;
                     this.saveTasks();
                     this.render();
                 }
@@ -262,84 +366,192 @@
                 this.render();
             }
 
+            getTaskStatus(task) {
+                if (task.completed) return 'completed';
+                
+                const today = this.getTodayDate();
+                const taskDate = task.dueDate;
+                
+                if (taskDate < today) return 'overdue';
+                if (taskDate === today) return 'today';
+                return 'future';
+            }
+
+            getTaskClass(task) {
+                const status = this.getTaskStatus(task);
+                const classes = {
+                    'overdue': 'task-overdue',
+                    'today': 'task-today',
+                    'future': 'task-future',
+                    'completed': ''
+                };
+                
+                let className = classes[status] || '';
+                if (task.repeat !== 'none') {
+                    className += ' task-repeat';
+                }
+                
+                return className;
+            }
+
             updateFilterButtons() {
                 document.querySelectorAll('.filter-btn').forEach(btn => {
                     if (btn.dataset.filter === this.currentFilter) {
-                        btn.className = 'filter-btn filter-btn-active px-6 py-3 rounded-xl font-semibold transition-all backdrop-blur-sm';
+                        btn.className = 'filter-btn filter-btn-active px-4 py-2 rounded-xl font-medium transition-all backdrop-blur-sm text-sm';
                     } else {
-                        btn.className = 'filter-btn px-6 py-3 rounded-xl font-semibold transition-all bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm';
+                        btn.className = 'filter-btn px-4 py-2 rounded-xl font-medium transition-all bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm text-sm';
                     }
                 });
             }
 
             render() {
-                let filteredTasks = this.tasks;
-                if (this.currentFilter === 'active') {
-                    filteredTasks = this.tasks.filter(t => !t.completed);
-                } else if (this.currentFilter === 'completed') {
-                    filteredTasks = this.tasks.filter(t => t.completed);
+                // 按状态分组任务
+                const groupedTasks = {
+                    overdue: [],
+                    today: [],
+                    future: [],
+                    completed: []
+                };
+
+                this.tasks.forEach(task => {
+                    const status = this.getTaskStatus(task);
+                    groupedTasks[status].push(task);
+                });
+
+                // 过滤任务
+                let filteredGroups = {};
+                if (this.currentFilter === 'all') {
+                    filteredGroups = groupedTasks;
+                } else {
+                    filteredGroups[this.currentFilter] = groupedTasks[this.currentFilter];
                 }
 
+                // 渲染任务列表
                 const taskList = document.getElementById('taskList');
-                if (filteredTasks.length === 0) {
+                let html = '';
+
+                const sectionTitles = {
+                    overdue: '🔥 逾期任务',
+                    today: '⏰ 今日任务',
+                    future: '📅 未来任务',
+                    completed: '✅ 已完成'
+                };
+
+                Object.keys(filteredGroups).forEach(status => {
+                    const tasks = filteredGroups[status];
+                    if (tasks.length > 0) {
+                        html += `
+                            <div class="task-section">
+                                <div class="section-title">${sectionTitles[status]} (${tasks.length})</div>
+                                <div class="space-y-3">
+                        `;
+                        
+                        tasks.forEach(task => {
+                            html += this.renderTask(task);
+                        });
+                        
+                        html += `
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+
+                if (html === '') {
                     let emptyMessage = '🌟 还没有任务，添加一个开始精彩的一天吧！';
                     let emoji = '🎯';
-                    if (this.currentFilter === 'active') {
-                        emptyMessage = '🎉 太棒了！所有任务都完成了！';
+                    
+                    if (this.currentFilter === 'overdue') {
+                        emptyMessage = '🎉 太棒了！没有逾期任务！';
                         emoji = '🏆';
-                    }
-                    if (this.currentFilter === 'completed') {
+                    } else if (this.currentFilter === 'today') {
+                        emptyMessage = '😴 今天没有安排任务';
+                        emoji = '☀️';
+                    } else if (this.currentFilter === 'future') {
+                        emptyMessage = '📝 还没有未来的计划';
+                        emoji = '🚀';
+                    } else if (this.currentFilter === 'completed') {
                         emptyMessage = '💪 还没有完成的任务，加油！';
                         emoji = '⚡';
                     }
                     
-                    taskList.innerHTML = `
+                    html = `
                         <div class="text-center py-16 text-white/80">
                             <div class="text-6xl mb-4 floating">${emoji}</div>
                             <div class="text-xl font-medium">${emptyMessage}</div>
                         </div>
                     `;
-                } else {
-                    taskList.innerHTML = filteredTasks.map(task => `
-                        <div class="task-item rounded-2xl p-5 flex items-center gap-4 ${task.completed ? 'opacity-60' : ''}">
-                            <button 
-                                onclick="todoApp.toggleTask(${task.id})"
-                                class="flex-shrink-0 w-8 h-8 rounded-full border-3 flex items-center justify-center transition-all font-bold text-lg ${
-                                    task.completed 
-                                        ? 'bg-gradient-to-r from-green-400 to-green-600 border-green-500 text-white shadow-lg' 
-                                        : 'border-gray-300 hover:border-green-400 hover:bg-green-50 hover:scale-110'
-                                }"
-                            >
-                                ${task.completed ? '✓' : ''}
-                            </button>
-                            
-                            <div class="flex-1">
+                }
+
+                taskList.innerHTML = html;
+
+                // 更新统计
+                this.updateStats(groupedTasks);
+            }
+
+            renderTask(task) {
+                const repeatIcon = task.repeat !== 'none' ? '🔄' : '';
+                const statusIcon = {
+                    'overdue': '🔥',
+                    'today': '⏰',
+                    'future': '📅',
+                    'completed': '✅'
+                }[this.getTaskStatus(task)];
+
+                return `
+                    <div class="task-item rounded-2xl p-4 flex items-center gap-4 ${task.completed ? 'opacity-60' : ''} ${this.getTaskClass(task)}">
+                        <button 
+                            onclick="todoApp.toggleTask(${task.id})"
+                            class="flex-shrink-0 w-8 h-8 rounded-full border-3 flex items-center justify-center transition-all font-bold text-lg ${
+                                task.completed 
+                                    ? 'bg-gradient-to-r from-green-400 to-green-600 border-green-500 text-white shadow-lg' 
+                                    : 'border-gray-300 hover:border-green-400 hover:bg-green-50 hover:scale-110'
+                            }"
+                        >
+                            ${task.completed ? '✓' : ''}
+                        </button>
+                        
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-1">
                                 <p class="text-gray-800 text-lg font-medium ${task.completed ? 'line-through text-gray-500' : ''}">
                                     ${task.text}
                                 </p>
-                                <p class="text-sm text-gray-400 mt-1 flex items-center gap-1">
-                                    📅 ${task.createdAt}
-                                </p>
+                                ${repeatIcon ? `<span class="text-sm">${repeatIcon}</span>` : ''}
                             </div>
-                            
-                            <button 
-                                onclick="todoApp.deleteTask(${task.id})"
-                                class="flex-shrink-0 p-3 text-gray-400 hover:text-red-500 transition-all hover:bg-red-50 rounded-xl hover:scale-110"
-                            >
-                                <span class="text-xl">🗑️</span>
-                            </button>
+                            <div class="flex items-center gap-3 text-sm text-gray-400">
+                                <span>${statusIcon} ${task.dueDate}</span>
+                                ${task.repeat !== 'none' ? `<span>🔄 ${this.getRepeatText(task.repeat)}</span>` : ''}
+                                <span>📅 ${task.createdAt}</span>
+                            </div>
                         </div>
-                    `).join('');
-                }
+                        
+                        <button 
+                            onclick="todoApp.deleteTask(${task.id})"
+                            class="flex-shrink-0 p-3 text-gray-400 hover:text-red-500 transition-all hover:bg-red-50 rounded-xl hover:scale-110"
+                        >
+                            <span class="text-xl">🗑️</span>
+                        </button>
+                    </div>
+                `;
+            }
 
-                const activeCount = this.tasks.filter(t => !t.completed).length;
-                const completedCount = this.tasks.filter(t => t.completed).length;
-                
-                document.getElementById('activeCount').textContent = activeCount;
-                document.getElementById('completedCount').textContent = completedCount;
-                document.getElementById('totalCount').textContent = this.tasks.length;
+            getRepeatText(repeat) {
+                const texts = {
+                    'daily': '每天',
+                    'weekly': '每周',
+                    'monthly': '每月'
+                };
+                return texts[repeat] || '';
+            }
 
-                document.getElementById('clearCompleted').style.display = completedCount > 0 ? 'block' : 'none';
+            updateStats(groupedTasks) {
+                document.getElementById('overdueCount').textContent = groupedTasks.overdue.length;
+                document.getElementById('todayCount').textContent = groupedTasks.today.length;
+                document.getElementById('futureCount').textContent = groupedTasks.future.length;
+                document.getElementById('completedCount').textContent = groupedTasks.completed.length;
+
+                document.getElementById('clearCompleted').style.display = 
+                    groupedTasks.completed.length > 0 ? 'block' : 'none';
             }
 
             loadTasks() {
