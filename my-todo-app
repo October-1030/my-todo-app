@@ -209,7 +209,7 @@
 
     <!-- 统计信息 -->
     <div class="glass-card rounded-2xl p-5 mb-6">
-        <div class="grid grid-cols-5 gap-3 text-white/90 font-medium text-center">
+        <div class="grid grid-cols-5 gap-3 text-white/90 font-medium text-center mb-4">
             <div>
                 <div class="text-xl font-bold text-white" id="overdueCount">0</div>
                 <div class="text-xs">逾期</div>
@@ -231,6 +231,17 @@
                 <div class="text-xs">已完成</div>
             </div>
         </div>
+        
+        <!-- 数据管理按钮移到这里 -->
+        <div class="flex justify-center gap-3 pt-3 border-t border-white/20">
+            <button id="exportData" class="px-5 py-3 text-white hover:text-white transition-all font-semibold bg-white/20 rounded-lg hover:bg-white/30 backdrop-blur-sm border border-white/30 hover:border-white/50">
+                📤 导出备份
+            </button>
+            <button id="importData" class="px-5 py-3 text-white hover:text-white transition-all font-semibold bg-white/20 rounded-lg hover:bg-white/30 backdrop-blur-sm border border-white/30 hover:border-white/50">
+                📥 导入备份
+            </button>
+            <input type="file" id="importFile" accept=".json" style="display: none;">
+        </div>
     </div>
 
     <!-- 过滤器 -->
@@ -248,21 +259,10 @@
     <div id="taskList"></div>
 
     <!-- 清除已完成按钮 -->
-    <div class="mt-8 text-center space-y-3">
-        <button id="clearCompleted" class="px-6 py-3 text-white/70 hover:text-red-400 transition-all text-lg font-medium bg-white/10 rounded-xl hover:bg-white/20 backdrop-blur-sm" style="display: none;">
+    <div class="mt-8 text-center">
+        <button id="clearCompleted" class="px-8 py-4 text-white hover:text-red-300 transition-all text-xl font-bold bg-red-500/20 rounded-xl hover:bg-red-500/30 backdrop-blur-sm border border-red-400/50 hover:border-red-400" style="display: none;">
             🗑️ 清理已完成任务
         </button>
-        
-        <!-- 数据管理按钮 -->
-        <div class="flex justify-center gap-3 flex-wrap">
-            <button id="exportData" class="px-4 py-2 text-white/60 hover:text-white transition-all text-sm font-medium bg-white/10 rounded-lg hover:bg-white/20 backdrop-blur-sm">
-                📤 导出数据
-            </button>
-            <button id="importData" class="px-4 py-2 text-white/60 hover:text-white transition-all text-sm font-medium bg-white/10 rounded-lg hover:bg-white/20 backdrop-blur-sm">
-                📥 导入数据
-            </button>
-            <input type="file" id="importFile" accept=".json" style="display: none;">
-        </div>
     </div>
 </div>
 
@@ -640,13 +640,14 @@
                 <div class="task-item rounded-2xl p-4 flex items-center gap-4 ${task.completed ? 'opacity-60' : ''} ${this.getTaskClass(task)}">
                     <button 
                         onclick="todoApp.toggleTask(${task.id})"
-                        class="flex-shrink-0 w-8 h-8 rounded-full border-3 flex items-center justify-center transition-all font-bold text-lg ${
+                        class="flex-shrink-0 w-12 h-12 rounded-full border-3 flex items-center justify-center transition-all font-bold text-xl ${
                             task.completed 
-                                ? 'bg-gradient-to-r from-green-400 to-green-600 border-green-500 text-white shadow-lg' 
-                                : 'border-gray-300 hover:border-green-400 hover:bg-green-50 hover:scale-110'
+                                ? 'bg-gradient-to-r from-green-400 to-green-600 border-green-500 text-white shadow-lg transform scale-105' 
+                                : 'border-4 border-gray-300 hover:border-green-400 hover:bg-green-50 hover:scale-110 bg-white shadow-md'
                         }"
+                        title="${task.completed ? '点击取消完成' : '点击标记完成'}"
                     >
-                        ${task.completed ? '✓' : ''}
+                        ${task.completed ? '✓' : '○'}
                     </button>
                     
                     <div class="flex-1">
@@ -670,18 +671,18 @@
                         ${task.completed ? 
                             `<button 
                                 onclick="todoApp.toggleTask(${task.id})"
-                                class="flex-shrink-0 p-2 text-yellow-500 hover:text-yellow-600 transition-all hover:bg-yellow-50 rounded-lg"
+                                class="flex-shrink-0 px-3 py-2 text-yellow-600 hover:text-yellow-700 transition-all hover:bg-yellow-50 rounded-lg border border-yellow-300 hover:border-yellow-400"
                                 title="取消完成"
                             >
-                                <span class="text-lg">↩️</span>
+                                <span class="text-lg">↩️ 取消</span>
                             </button>` : ''
                         }
                         <button 
                             onclick="todoApp.deleteTask(${task.id})"
-                            class="flex-shrink-0 p-2 text-gray-400 hover:text-red-500 transition-all hover:bg-red-50 rounded-lg hover:scale-110"
+                            class="flex-shrink-0 px-3 py-2 text-red-500 hover:text-red-600 transition-all hover:bg-red-50 rounded-lg border border-red-300 hover:border-red-400"
                             title="删除任务"
                         >
-                            <span class="text-lg">🗑️</span>
+                            <span class="text-lg">🗑️ 删除</span>
                         </button>
                     </div>
                 </div>
