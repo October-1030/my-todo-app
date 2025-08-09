@@ -9,7 +9,7 @@
 
 ```
 <!-- PWA支持 -->
-<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoi5pm66IO95b6F5Yqe5riF5YiVIiwic2hvcnRfbmFtZSI6IuW+heWKnuS7iSIsInN0YXJ0X3VybCI6Ii4iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjNjY3ZWVhIiwidGhlbWVfY29sb3IiOiIjNjY3ZWVhIiwiaWNvbnMiOlt7InNyYyI6ImRhdGE6aW1hZ2Uvc3ZnK3htbDtiYXNlNjQsUEQ5NGJXd2dkbVZ5YzJsdmJqMGlNUzR3SWlCbGJtTnZaR2x1WnowaVZWUkdMVGdpUHo0OEMzWm5JR2hsYVdkb2REMGlNalEwSWlCM2FXUjBhRDBpTWpRMElpQm1hV3hzUFNJak5qWjNaV1ZoSWlCNGJXeHVjejBpYUhSMGNEb3ZMM2QzZHk1M015NXZjbWN2TWpBd01DOXpkbWNpUGp4d1lYUm9JR1E5SWsweE1pQXpJRXc0SURNZ1REZ2dNVFVnVERFeUlESTNJRXc0SURJM0lFeElERXlJREk1SW5BK1BIQmhkR2dnWkQwaVRUWWdOaUJNTVRnZ05pQk1NVGNNRFV3S1pHRXRNVFE0VERRdE5VZFlNVFl0TVRWR01ERXROa3cyTVM0MUxURXVOVGgyTURrek5TTXRNVEV1TkRZdE5EZ3VOaTQyTnkwNU55NHpNelE0TFRJdU9USWdNVEZqTFRJMkxqZzJJRGN1TkRNdE1qZzJNUzR3T0N3NElqRXhMVGcxTFRNeElETWpMVGMyTGpJZ01UUXVNVGdnTVRRdU1UZ3ROekkxSWk4K1BIQmhkR2dnWkQwaVRUazVJRGtnVERrNUlEa3VNamsxSUV3NE5TNDNJRUUyTGpJMUlEWXVNalVnTUNCd01ERTRJREFnTVRrZ01URWdNVGtnTVRrZ01URWdhREkzSWlBdkBnb3FQSFB4SXpVRFl3SlJGY1E4NThyOFVnPSIsInNpemVzIjoiMjQyeDI0MiIsInR5cGUiOiJpbWFnZS9zdmcreG1sIn1dfQ==">
+<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoi5pm66IO95b6F5Yqe5riF5YiVIiwic2hvcnRfbmFtZSI6IuW+heWKnuS7iSIsInN0YXJ0X3VybCI6Ii4iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjNjY3ZWVhIiwidGhlbWVfY29sb3IiOiIjNjY3ZWVhIiwiaWNvbnMiOlt7InNyYyI6ImRhdGE6aW1hZ2Uvc3ZnK3htbDtiYXNlNjQsUEQ5NGJXd2dkbVZ5YzJsdmJqMGlNUzR3SWlCbGJtTnZaR2x1WnowaVZWUkdMVGdpUHo0OEMzWm5JR2hsYVdkb2REMGlNalEwSWlCM2FXUjBhRDBpTWpRMElpQm1hV3hzUFNJak5qWjNaV1ZoSWlCNGJXeHVjejBpYUhSMGNEb3ZMM2QzZHk1M015NXZjbWN2TWpBd01DOXpkbWNpUGp4d1lYUm9JR1E5SWsweE1pQXpJRXc0SURNZ1REZ2dNVFVnVERFeUlESTNJRXc0SURJM0lFeElERXlJREk5SW5BK1BIQmhkR2dnWkQwaVRUWWdOaUJNTVRnZ05pQk1NVGNNRFV3S1pHRXRNVFE0VERRdE5VZFlNVFl0TVRWR01ERXROa3cyTVM0MUxURXVOVGgyTURrek5TTXRNVEV1TkRZdE5EZ3VOaTQyTnkwNU55NHpNelE0TFRJdU9USWdNVEZqTFRJMkxqZzJJRGN1TkRNdE1qZzJNUzR3T0N3NElqRXhMVGcxTFRNeElETWpMVGMyTGpJZ01UUXVNVGdnTVRRdU1UZ3ROekkxSWk4K1BIQmhkR2dnWkQwaVRUazVJRGtnVERrNUlEa3VNamsxSUV3NE5TNDNJRUUyTGpJMUlEWXVNalVnTUNCd01ERTRJREFnTVRrZ01URWdNVGtnTVRrZ01URWdhREkzSWlBdkBnb3FQSFB4SXpVRFl3SlJGY1E4NThyOFVnPSIsInNpemVzIjoiMjQyeDI0MiIsInR5cGUiOiJpbWFnZS9zdmcreG1sIn1dfQ==">
 
 <style>
     * {
@@ -432,6 +432,76 @@
         50% { opacity: 0.5; }
     }
 
+    /* 页面内通知样式 */
+    .in-page-notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        z-index: 10000;
+        animation: slideInRight 0.3s ease-out;
+        max-width: 300px;
+    }
+
+    @keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    .notification-content {
+        padding: 15px 20px;
+        position: relative;
+    }
+
+    .notification-title {
+        font-weight: 600;
+        color: #667eea;
+        margin-bottom: 5px;
+        font-size: 14px;
+    }
+
+    .notification-body {
+        color: #333;
+        margin-bottom: 5px;
+        font-size: 13px;
+        line-height: 1.4;
+    }
+
+    .notification-meta {
+        color: #666;
+        font-size: 12px;
+    }
+
+    .notification-close {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        background: none;
+        border: none;
+        font-size: 18px;
+        color: #999;
+        cursor: pointer;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .notification-close:hover {
+        background: #f0f0f0;
+        color: #666;
+    }
+
     /* 响应式设计 */
     @media (max-width: 480px) {
         body { padding: 10px; }
@@ -612,6 +682,18 @@
         updateDateTime();
         setInterval(updateDateTime, 60000);
         
+        // 检查提醒和每日更新
+        checkReminders();
+        setInterval(checkReminders, 60000); // 每分钟检查一次
+        
+        // 每天午夜检查重复任务
+        const now = new Date();
+        const msUntilMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1) - now;
+        setTimeout(() => {
+            checkDailyTasks();
+            setInterval(checkDailyTasks, 24 * 60 * 60 * 1000); // 每24小时
+        }, msUntilMidnight);
+        
         // 事件监听器
         document.getElementById('taskInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') addTask();
@@ -631,7 +713,84 @@
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('data:application/javascript;base64,');
         }
+        
+        // 请求通知权限
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
     });
+
+    function checkReminders() {
+        const now = new Date();
+        const today = now.toDateString();
+        
+        tasks.forEach(task => {
+            if (task.completed || !task.dueDate || task.reminderDays === 0) return;
+            
+            const dueDate = new Date(task.dueDate);
+            const daysDiff = Math.ceil((dueDate - now) / (1000 * 60 * 60 * 24));
+            
+            // 检查是否需要提醒
+            if (daysDiff === task.reminderDays && !task.reminded) {
+                showNotification(task);
+                task.reminded = true;
+                saveTasks();
+            }
+            
+            // 重置每日提醒状态
+            if (task.lastReminderDate !== today) {
+                task.reminded = false;
+                task.lastReminderDate = today;
+            }
+        });
+    }
+
+    function showNotification(task) {
+        const title = '📋 待办提醒';
+        const body = `${task.text}\n📅 ${task.reminderDays}天后截止`;
+        
+        // 浏览器通知
+        if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification(title, {
+                body: body,
+                icon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIGZpbGw9IiM2NjdlZWEiIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTEyIDJDNi40NzcgMiAyIDYuNDc3IDIgMTJzNC40NzcgMTAgMTAgMTAgMTAtNC40NzcgMTAtMTBTMTcuNTIzIDIgMTIgMnoiLz48L3N2Zz4=',
+                tag: `task-${task.id}`,
+                requireInteraction: true
+            });
+        }
+        
+        // 页面内提醒
+        showInPageNotification(task);
+    }
+
+    function showInPageNotification(task) {
+        // 创建页面内通知
+        const notification = document.createElement('div');
+        notification.className = 'in-page-notification';
+        notification.innerHTML = `
+            <div class="notification-content">
+                <div class="notification-title">📋 任务提醒</div>
+                <div class="notification-body">${task.text}</div>
+                <div class="notification-meta">📅 ${task.reminderDays}天后截止</div>
+                <button class="notification-close" onclick="this.parentElement.parentElement.remove()">×</button>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // 8秒后自动消失
+        setTimeout(() => {
+            if (notification.parentElement) {
+                notification.remove();
+            }
+        }, 8000);
+    }
+
+    function checkDailyTasks() {
+        // 这里可以添加每日任务检查逻辑
+        // 比如检查是否有新的重复任务需要创建
+        renderTasks(); // 重新渲染以更新日期显示
+    }
 
     function updateDateTime() {
         const now = new Date();
@@ -811,9 +970,30 @@
     }
 
     function renderTask(task, category) {
-        const dueText = task.dueDate ? 
-            `📅 ${new Date(task.dueDate).toLocaleDateString('zh-CN')}` : 
-            '📅 无截止日期';
+        const now = new Date();
+        const dueDate = task.dueDate ? new Date(task.dueDate) : null;
+        
+        let dueText = '📅 无截止日期';
+        let countdownText = '';
+        
+        if (dueDate) {
+            const daysDiff = Math.ceil((dueDate - now) / (1000 * 60 * 60 * 24));
+            const formattedDate = dueDate.toLocaleDateString('zh-CN');
+            
+            if (daysDiff < 0) {
+                dueText = `📅 ${formattedDate}`;
+                countdownText = `⏰ 逾期${Math.abs(daysDiff)}天`;
+            } else if (daysDiff === 0) {
+                dueText = `📅 ${formattedDate}`;
+                countdownText = `⏰ 今天截止`;
+            } else if (daysDiff === 1) {
+                dueText = `📅 ${formattedDate}`;
+                countdownText = `⏰ 明天截止`;
+            } else {
+                dueText = `📅 ${formattedDate}`;
+                countdownText = `⏰ 还有${daysDiff}天`;
+            }
+        }
         
         const repeatText = task.repeatType !== 'none' ? 
             `🔄 ${{'daily': '每天', 'weekly': '每周', 'monthly': '每月'}[task.repeatType]}` : '';
@@ -831,6 +1011,7 @@
                     <div class="task-text ${task.completed ? 'completed' : ''}">${task.text}</div>
                     <div class="task-meta">
                         <span>${dueText}</span>
+                        ${countdownText ? `<span style="color: ${category === 'overdue' ? '#ff6b6b' : category === 'today' ? '#feca57' : '#48dbfb'}; font-weight: 600;">${countdownText}</span>` : ''}
                         ${repeatText ? `<span>${repeatText}</span>` : ''}
                         ${reminderText ? `<span>${reminderText}</span>` : ''}
                     </div>
