@@ -1,1176 +1,944 @@
 <!DOCTYPE html>
-
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>智能待办清单</title>
-    <meta name="theme-color" content="#667eea">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-```
-<!-- PWA支持 -->
-<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoi5pm66IO95b6F5Yqe5riF5YiVIiwic2hvcnRfbmFtZSI6IuW+heWKnuS7iSIsInN0YXJ0X3VybCI6Ii4iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjNjY3ZWVhIiwidGhlbWVfY29sb3IiOiIjNjY3ZWVhIiwiaWNvbnMiOlt7InNyYyI6ImRhdGE6aW1hZ2Uvc3ZnK3htbDtiYXNlNjQsUEQ5NGJXd2dkbVZ5YzJsdmJqMGlNUzR3SWlCbGJtTnZaR2x1WnowaVZWUkdMVGdpUHo0OEMzWm5JR2hsYVdkb2REMGlNalEwSWlCM2FXUjBhRDBpTWpRMElpQm1hV3hzUFNJak5qWjNaV1ZoSWlCNGJXeHVjejBpYUhSMGNEb3ZMM2QzZHk1M015NXZjbWN2TWpBd01DOXpkbWNpUGp4d1lYUm9JR1E5SWsweE1pQXpJRXc0SURNZ1REZ2dNVFVnVERFeUlESTNJRXc0SURJM0lFeElERXlJREk5SW5BK1BIQmhkR2dnWkQwaVRUWWdOaUJNTVRnZ05pQk1NVGNNRFV3S1pHRXRNVFE0VERRdE5VZFlNVFl0TVRWR01ERXROa3cyTVM0MUxURXVOVGgyTURrek5TTXRNVEV1TkRZdE5EZ3VOaTQyTnkwNU55NHpNelE0TFRJdU9USWdNVEZqTFRJMkxqZzJJRGN1TkRNdE1qZzJNUzR3T0N3NElqRXhMVGcxTFRNeElETWpMVGMyTGpJZ01UUXVNVGdnTVRRdU1UZ3ROekkxSWk4K1BIQmhkR2dnWkQwaVRUazVJRGtnVERrNUlEa3VNamsxSUV3NE5TNDNJRUUyTGpJMUlEWXVNalVnTUNCd01ERTRJREFnTVRrZ01URWdNVGtnTVRrZ01URWdhREkzSWlBdkBnb3FQSFB4SXpVRFl3SlJGY1E4NThyOFVnPSIsInNpemVzIjoiMjQyeDI0MiIsInR5cGUiOiJpbWFnZS9zdmcreG1sIn1dfQ==">
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
 
-<style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
 
-    body {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        min-height: 100vh;
-        padding: 20px;
-        line-height: 1.6;
-    }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
 
-    .container {
-        max-width: 500px;
-        margin: 0 auto;
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(20px);
-        border-radius: 20px;
-        padding: 25px;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-        animation: slideUp 0.5s ease-out;
-    }
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
 
-    @keyframes slideUp {
-        from {
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .add-section {
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        #taskInput {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        #taskInput:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .add-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .add-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .date-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .date-controls input,
+        .date-controls select {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .filters {
+            padding: 15px;
+            background: white;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .filter-btn {
+            background: #f0f0f0;
+            border: 1px solid #ddd;
+            color: #666;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .filter-btn:hover {
+            background: #e8e8e8;
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        .task-list {
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .task-item {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .task-item:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .task-item.completed {
+            opacity: 0.6;
+            background: #f8f8f8;
+        }
+
+        .task-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #667eea;
+            border-radius: 50%;
+            cursor: pointer;
+            position: relative;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .task-item.completed .task-checkbox {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+        }
+
+        .task-item.completed .task-checkbox::after {
+            content: '✓';
+            color: white;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 12px;
+        }
+
+        .task-content {
+            flex: 1;
+        }
+
+        .task-text {
+            font-size: 15px;
+            color: #333;
+            margin-bottom: 5px;
+            word-wrap: break-word;
+        }
+
+        .task-item.completed .task-text {
+            text-decoration: line-through;
+            color: #999;
+        }
+
+        .task-meta {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .task-date {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .countdown {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 500;
+        }
+
+        .countdown.overdue {
+            background: #ef4444;
+        }
+
+        .countdown.today {
+            background: #f59e0b;
+        }
+
+        .countdown.tomorrow {
+            background: #3b82f6;
+        }
+
+        .countdown.future {
+            background: #8b5cf6;
+        }
+
+        .countdown.reminder {
+            background: #a855f7;
+        }
+
+        .delete-btn {
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
             opacity: 0;
-            transform: translateY(30px);
+            transition: opacity 0.3s;
         }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
 
-    .header {
-        text-align: center;
-        margin-bottom: 25px;
-        animation: float 3s ease-in-out infinite;
-    }
-
-    @keyframes float {
-        0%, 100% { transform: translateY(0px); }
-        50% { transform: translateY(-5px); }
-    }
-
-    .header h1 {
-        font-size: 28px;
-        font-weight: 700;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        margin-bottom: 8px;
-    }
-
-    .date-time {
-        color: #666;
-        font-size: 14px;
-        font-weight: 500;
-    }
-
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 15px;
-        margin-bottom: 25px;
-    }
-
-    .stat-card {
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        padding: 15px;
-        border-radius: 15px;
-        text-align: center;
-        color: white;
-        box-shadow: 0 8px 25px rgba(240, 147, 251, 0.3);
-        transition: transform 0.3s ease;
-    }
-
-    .stat-card:hover {
-        transform: translateY(-3px) scale(1.02);
-    }
-
-    .stat-card.primary {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-    }
-
-    .stat-card.success {
-        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        box-shadow: 0 8px 25px rgba(79, 172, 254, 0.3);
-    }
-
-    .stat-number {
-        font-size: 24px;
-        font-weight: 700;
-        display: block;
-    }
-
-    .stat-label {
-        font-size: 12px;
-        opacity: 0.9;
-        margin-top: 2px;
-    }
-
-    .input-section {
-        margin-bottom: 25px;
-    }
-
-    .input-group {
-        background: #f8f9fc;
-        border-radius: 15px;
-        padding: 4px;
-        margin-bottom: 15px;
-        box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.05);
-    }
-
-    .input-row {
-        display: flex;
-        gap: 8px;
-        margin-bottom: 8px;
-    }
-
-    input[type="text"] {
-        flex: 1;
-        padding: 15px 18px;
-        border: none;
-        border-radius: 12px;
-        background: white;
-        font-size: 16px;
-        transition: all 0.3s ease;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    }
-
-    input[type="text"]:focus {
-        outline: none;
-        box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
-        transform: translateY(-1px);
-    }
-
-    input[type="date"], select {
-        padding: 12px 15px;
-        border: none;
-        border-radius: 12px;
-        background: white;
-        font-size: 14px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        min-width: 100px;
-    }
-
-    .add-btn {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        padding: 15px 25px;
-        border-radius: 12px;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-        width: 100%;
-    }
-
-    .add-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 12px 35px rgba(102, 126, 234, 0.5);
-    }
-
-    .add-btn:active {
-        transform: translateY(0);
-    }
-
-    .filters {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        margin-bottom: 20px;
-        justify-content: center;
-    }
-
-    .filter-btn {
-        padding: 8px 12px;
-        border: 2px solid #e1e5f2;
-        border-radius: 15px;
-        background: white;
-        color: #667eea;
-        font-size: 11px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        flex: 0 0 auto;
-        min-width: fit-content;
-    }
-
-    .filter-btn.active {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-color: #667eea;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-    }
-
-    .task-list {
-        max-height: 400px;
-        overflow-y: auto;
-        margin-bottom: 20px;
-    }
-
-    .task-category {
-        margin-bottom: 20px;
-    }
-
-    .category-header {
-        display: flex;
-        align-items: center;
-        margin-bottom: 12px;
-        font-weight: 600;
-        font-size: 14px;
-        color: #333;
-    }
-
-    .category-count {
-        background: #667eea;
-        color: white;
-        padding: 2px 8px;
-        border-radius: 10px;
-        font-size: 11px;
-        margin-left: 8px;
-    }
-
-    .task-item {
-        background: white;
-        border-radius: 15px;
-        padding: 15px;
-        margin-bottom: 8px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-        border-left: 4px solid;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .task-item:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
-    }
-
-    .task-item.overdue { border-left-color: #ff6b6b; }
-    .task-item.today { border-left-color: #feca57; }
-    .task-item.reminder { border-left-color: #ff9ff3; }
-    .task-item.upcoming { border-left-color: #48dbfb; }
-    .task-item.completed { 
-        border-left-color: #1dd1a1; 
-        opacity: 0.7;
-    }
-
-    .task-checkbox {
-        width: 24px;
-        height: 24px;
-        border: 3px solid #ddd;
-        border-radius: 50%;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 14px;
-        font-weight: bold;
-    }
-
-    .task-checkbox:hover {
-        border-color: #667eea;
-        transform: scale(1.1);
-    }
-
-    .task-checkbox.completed {
-        background: #1dd1a1;
-        border-color: #1dd1a1;
-        color: white;
-    }
-
-    .task-content {
-        flex: 1;
-    }
-
-    .task-text {
-        font-size: 15px;
-        font-weight: 500;
-        color: #333;
-        margin-bottom: 4px;
-    }
-
-    .task-text.completed {
-        text-decoration: line-through;
-        color: #999;
-    }
-
-    .task-meta {
-        font-size: 12px;
-        color: #666;
-        display: flex;
-        gap: 12px;
-        flex-wrap: wrap;
-    }
-
-    .task-actions {
-        display: flex;
-        gap: 8px;
-    }
-
-    .action-btn {
-        width: 36px;
-        height: 36px;
-        border-radius: 18px;
-        border: none;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 16px;
-        transition: all 0.3s ease;
-    }
-
-    .action-btn.delete {
-        background: #ffebee;
-        color: #f44336;
-    }
-
-    .action-btn.delete:hover {
-        background: #f44336;
-        color: white;
-        transform: scale(1.1);
-    }
-
-    .action-btn.undo {
-        background: #fff3e0;
-        color: #ff9800;
-    }
-
-    .action-btn.undo:hover {
-        background: #ff9800;
-        color: white;
-        transform: scale(1.1);
-    }
-
-    .backup-section {
-        background: #f8f9fc;
-        border-radius: 15px;
-        padding: 20px;
-        margin-top: 20px;
-    }
-
-    .backup-title {
-        font-size: 16px;
-        font-weight: 600;
-        color: #333;
-        margin-bottom: 15px;
-        text-align: center;
-    }
-
-    .backup-buttons {
-        display: flex;
-        gap: 10px;
-    }
-
-    .backup-btn {
-        flex: 1;
-        padding: 12px;
-        border: 2px solid #667eea;
-        border-radius: 12px;
-        background: white;
-        color: #667eea;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-
-    .backup-btn:hover {
-        background: #667eea;
-        color: white;
-        transform: translateY(-1px);
-    }
-
-    .empty-state {
-        text-align: center;
-        padding: 40px 20px;
-        color: #999;
-    }
-
-    .empty-state .emoji {
-        font-size: 48px;
-        margin-bottom: 15px;
-        display: block;
-    }
-
-    .sync-status {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        background: #ff6b6b;
-        z-index: 1000;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    }
-
-    .sync-status.online { background: #1dd1a1; }
-    .sync-status.syncing { 
-        background: #feca57;
-        animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.5; }
-    }
-
-    /* 页面内通知样式 */
-    .in-page-notification {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: white;
-        border-radius: 15px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        z-index: 10000;
-        animation: slideInRight 0.3s ease-out;
-        max-width: 300px;
-    }
-
-    @keyframes slideInRight {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
+        .task-item:hover .delete-btn {
             opacity: 1;
         }
-    }
 
-    .notification-content {
-        padding: 15px 20px;
-        position: relative;
-    }
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
 
-    .notification-title {
-        font-weight: 600;
-        color: #667eea;
-        margin-bottom: 5px;
-        font-size: 14px;
-    }
+        .empty-state .icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
 
-    .notification-body {
-        color: #333;
-        margin-bottom: 5px;
-        font-size: 13px;
-        line-height: 1.4;
-    }
+        .stats {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            display: flex;
+            justify-content: space-around;
+            border-top: 1px solid #e0e0e0;
+        }
 
-    .notification-meta {
-        color: #666;
-        font-size: 12px;
-    }
+        .stat-item {
+            text-align: center;
+        }
 
-    .notification-close {
-        position: absolute;
-        top: 10px;
-        right: 15px;
-        background: none;
-        border: none;
-        font-size: 18px;
-        color: #999;
-        cursor: pointer;
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
 
-    .notification-close:hover {
-        background: #f0f0f0;
-        color: #666;
-    }
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
 
-    /* 响应式设计 */
-    @media (max-width: 480px) {
-        body { padding: 10px; }
-        .container { padding: 20px; }
-        .stats-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
-        .input-row { flex-direction: column; }
-        input[type="date"], select { min-width: auto; }
-    }
+        .footer {
+            padding: 15px 20px;
+            background: white;
+            display: flex;
+            gap: 10px;
+        }
 
-    /* 滚动条样式 */
-    .task-list::-webkit-scrollbar {
-        width: 6px;
-    }
+        .footer button {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+            background: white;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
 
-    .task-list::-webkit-scrollbar-track {
-        background: #f1f1f1;
-        border-radius: 3px;
-    }
+        .footer button:hover {
+            background: #f8f9fa;
+            border-color: #667eea;
+        }
 
-    .task-list::-webkit-scrollbar-thumb {
-        background: #667eea;
-        border-radius: 3px;
-    }
-</style>
-```
+        /* 提醒通知弹窗 */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            left: 20px;
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 16px;
+            z-index: 1000;
+            animation: slideDown 0.3s ease;
+        }
 
+        .notification-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .notification-title {
+            font-weight: 600;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .notification-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: #999;
+            cursor: pointer;
+        }
+
+        .notification-body {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .notification-time {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #999;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+        }
+
+        #importFile {
+            display: none;
+        }
+
+        /* 响应式优化 */
+        @media (max-width: 480px) {
+            body {
+                padding: 0;
+            }
+            
+            .container {
+                border-radius: 0;
+                min-height: 100vh;
+            }
+            
+            .task-list {
+                max-height: calc(100vh - 450px);
+            }
+        }
+    </style>
 </head>
 <body>
-    <div class="sync-status" id="syncStatus" title="同步状态"></div>
-
-```
-<div class="container">
-    <div class="header">
-        <h1>📋 智能待办清单</h1>
-        <div class="date-time" id="dateTime"></div>
-    </div>
-
-    <div class="stats-grid" id="statsGrid">
-        <div class="stat-card">
-            <span class="stat-number" id="totalTasks">0</span>
-            <span class="stat-label">总任务</span>
+    <div class="container">
+        <div class="header">
+            <h1>📋 智能待办清单</h1>
+            <p id="currentDate"></p>
         </div>
-        <div class="stat-card primary">
-            <span class="stat-number" id="todayTasks">0</span>
-            <span class="stat-label">今日待办</span>
-        </div>
-        <div class="stat-card success">
-            <span class="stat-number" id="completedTasks">0</span>
-            <span class="stat-label">已完成</span>
-        </div>
-    </div>
 
-    <div class="input-section">
-        <div class="input-group">
-            <div class="input-row">
-                <input type="text" id="taskInput" placeholder="添加新任务..." maxlength="100">
+        <div class="add-section">
+            <div class="input-group">
+                <input type="text" id="taskInput" placeholder="添加新任务..." />
+                <button class="add-btn" onclick="addTask()">添加</button>
             </div>
-            <div class="input-row">
-                <input type="date" id="taskDate">
+            <div class="date-controls">
+                <input type="date" id="taskDate" />
                 <select id="reminderDays">
-                    <option value="0">无提醒</option>
+                    <option value="-1">不提醒</option>
+                    <option value="0">当天提醒</option>
                     <option value="1">提前1天</option>
                     <option value="3">提前3天</option>
                     <option value="7">提前7天</option>
                     <option value="14">提前14天</option>
                 </select>
-                <select id="repeatType">
-                    <option value="none">不重复</option>
-                    <option value="daily">每天</option>
-                    <option value="weekly">每周</option>
-                    <option value="monthly">每月</option>
-                </select>
             </div>
-            <button class="add-btn" onclick="addTask()">🚀 添加任务</button>
         </div>
-    </div>
 
-    <div class="filters" id="filters">
-        <button class="filter-btn active" data-filter="all">📋 全部</button>
-        <button class="filter-btn" data-filter="ongoing">🚀 进行中</button>
-        <button class="filter-btn" data-filter="overdue">🔥 逾期</button>
-        <button class="filter-btn" data-filter="today">⏰ 今日</button>
-        <button class="filter-btn" data-filter="reminder">🔔 提醒</button>
-        <button class="filter-btn" data-filter="upcoming">📅 未来</button>
-        <button class="filter-btn" data-filter="completed">✅ 已完成</button>
-    </div>
-
-    <div class="task-list" id="taskList">
-        <div class="empty-state">
-            <span class="emoji">✨</span>
-            <div>暂无任务</div>
-            <small>添加第一个任务开始高效生活！</small>
+        <div class="filters">
+            <button class="filter-btn active" onclick="setFilter('all')">📋 全部</button>
+            <button class="filter-btn" onclick="setFilter('today')">⏰ 今日</button>
+            <button class="filter-btn" onclick="setFilter('ongoing')">🚀 进行中</button>
+            <button class="filter-btn" onclick="setFilter('overdue')">🔥 逾期</button>
+            <button class="filter-btn" onclick="setFilter('reminder')">🔔 提醒</button>
+            <button class="filter-btn" onclick="setFilter('upcoming')">📅 未来</button>
+            <button class="filter-btn" onclick="setFilter('completed')">✅ 完成</button>
         </div>
-    </div>
 
-    <div class="backup-section">
-        <div class="backup-title">📤 数据管理</div>
-        <div class="backup-buttons">
-            <button class="backup-btn" onclick="exportData()">📤 导出备份</button>
-            <button class="backup-btn" onclick="importData()">📥 导入备份</button>
-        </div>
-        <input type="file" id="importFile" accept=".json" style="display: none;" onchange="handleImport(event)">
-    </div>
-</div>
-
-<script type="module">
-    // Firebase配置 - 使用你的配置
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-    import { getDatabase, ref, onValue, set, push } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
-
-    const firebaseConfig = {
-        apiKey: "AIzaSyCQMq8-YMCd2_VerYKw2PCcqdXmjpcvfF8",
-        authDomain: "my-todo-sync.firebaseapp.com",
-        databaseURL: "https://my-todo-sync-default-rtdb.firebaseio.com",
-        projectId: "my-todo-sync",
-        storageBucket: "my-todo-sync.firebasestorage.app",
-        messagingSenderId: "807738313038",
-        appId: "1:807738313038:web:6c583cc14e898eed87b61f"
-    };
-
-    let app, database;
-    let tasks = [];
-    let currentFilter = 'all';
-    let isOnline = false;
-
-    // 初始化Firebase
-    try {
-        app = initializeApp(firebaseConfig);
-        database = getDatabase(app);
-        setupFirebaseSync();
-    } catch (error) {
-        console.error('Firebase初始化失败:', error);
-        updateSyncStatus('offline');
-        loadLocalTasks();
-    }
-
-    // Firebase同步设置
-    function setupFirebaseSync() {
-        const tasksRef = ref(database, 'tasks');
-        
-        onValue(tasksRef, (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                tasks = Object.values(data).map(task => ({
-                    ...task,
-                    dueDate: task.dueDate || null,
-                    reminderDays: task.reminderDays || 0,
-                    repeatType: task.repeatType || 'none'
-                }));
-                updateSyncStatus('online');
-                saveLocalTasks(); // 本地备份
-                renderTasks();
-            }
-        }, (error) => {
-            console.error('Firebase同步失败:', error);
-            updateSyncStatus('offline');
-            loadLocalTasks();
-        });
-    }
-
-    // 同步状态更新
-    function updateSyncStatus(status) {
-        const syncStatus = document.getElementById('syncStatus');
-        syncStatus.className = `sync-status ${status}`;
-        
-        const statusText = {
-            'online': '在线同步',
-            'offline': '离线模式', 
-            'syncing': '同步中...'
-        };
-        
-        syncStatus.title = statusText[status] || '未知状态';
-        isOnline = status === 'online';
-    }
-
-    // 初始化应用
-    document.addEventListener('DOMContentLoaded', function() {
-        updateDateTime();
-        setInterval(updateDateTime, 60000);
-        
-        // 检查提醒和每日更新
-        checkReminders();
-        setInterval(checkReminders, 60000); // 每分钟检查一次
-        
-        // 每天午夜检查重复任务
-        const now = new Date();
-        const msUntilMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1) - now;
-        setTimeout(() => {
-            checkDailyTasks();
-            setInterval(checkDailyTasks, 24 * 60 * 60 * 1000); // 每24小时
-        }, msUntilMidnight);
-        
-        // 事件监听器
-        document.getElementById('taskInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') addTask();
-        });
-
-        // 过滤器事件
-        document.querySelectorAll('.filter-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                currentFilter = this.dataset.filter;
-                renderTasks();
-            });
-        });
-
-        // PWA支持
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('data:application/javascript;base64,');
-        }
-        
-        // 请求通知权限
-        if ('Notification' in window && Notification.permission === 'default') {
-            Notification.requestPermission();
-        }
-    });
-
-    function checkReminders() {
-        const now = new Date();
-        const today = now.toDateString();
-        
-        tasks.forEach(task => {
-            if (task.completed || !task.dueDate || task.reminderDays === 0) return;
-            
-            const dueDate = new Date(task.dueDate);
-            const daysDiff = Math.ceil((dueDate - now) / (1000 * 60 * 60 * 24));
-            
-            // 检查是否需要提醒
-            if (daysDiff === task.reminderDays && !task.reminded) {
-                showNotification(task);
-                task.reminded = true;
-                saveTasks();
-            }
-            
-            // 重置每日提醒状态
-            if (task.lastReminderDate !== today) {
-                task.reminded = false;
-                task.lastReminderDate = today;
-            }
-        });
-    }
-
-    function showNotification(task) {
-        const title = '📋 待办提醒';
-        const body = `${task.text}\n📅 ${task.reminderDays}天后截止`;
-        
-        // 浏览器通知
-        if ('Notification' in window && Notification.permission === 'granted') {
-            new Notification(title, {
-                body: body,
-                icon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIGZpbGw9IiM2NjdlZWEiIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTEyIDJDNi40NzcgMiAyIDYuNDc3IDIgMTJzNC40NzcgMTAgMTAgMTAgMTAtNC40NzcgMTAtMTBTMTcuNTIzIDIgMTIgMnoiLz48L3N2Zz4=',
-                tag: `task-${task.id}`,
-                requireInteraction: true
-            });
-        }
-        
-        // 页面内提醒
-        showInPageNotification(task);
-    }
-
-    function showInPageNotification(task) {
-        // 创建页面内通知
-        const notification = document.createElement('div');
-        notification.className = 'in-page-notification';
-        notification.innerHTML = `
-            <div class="notification-content">
-                <div class="notification-title">📋 任务提醒</div>
-                <div class="notification-body">${task.text}</div>
-                <div class="notification-meta">📅 ${task.reminderDays}天后截止</div>
-                <button class="notification-close" onclick="this.parentElement.parentElement.remove()">×</button>
+        <div class="task-list" id="taskList">
+            <div class="empty-state">
+                <div class="icon">📝</div>
+                <div>暂无任务，开始添加吧！</div>
             </div>
-        `;
+        </div>
+
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-value" id="ongoingCount">0</div>
+                <div class="stat-label">进行中</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="todayCount">0</div>
+                <div class="stat-label">今日</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="overdueCount">0</div>
+                <div class="stat-label">逾期</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="completedCount">0</div>
+                <div class="stat-label">已完成</div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <button onclick="exportData()">📤 导出</button>
+            <button onclick="document.getElementById('importFile').click()">📥 导入</button>
+            <button onclick="clearCompleted()">🧹 清理</button>
+            <button onclick="testReminder()">🔔 测试</button>
+        </div>
+    </div>
+
+    <input type="file" id="importFile" accept=".json" onchange="importData(event)" />
+
+    <script>
+        // Firebase配置（可选）
+        const useFirebase = false; // 设置为true启用云同步
         
-        document.body.appendChild(notification);
-        
-        // 8秒后自动消失
-        setTimeout(() => {
-            if (notification.parentElement) {
-                notification.remove();
-            }
-        }, 8000);
-    }
+        let tasks = [];
+        let currentFilter = 'all';
+        let remindedTasks = new Set();
 
-    function checkDailyTasks() {
-        // 这里可以添加每日任务检查逻辑
-        // 比如检查是否有新的重复任务需要创建
-        renderTasks(); // 重新渲染以更新日期显示
-    }
-
-    function updateDateTime() {
-        const now = new Date();
-        const options = { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric',
-            weekday: 'long',
-            hour: '2-digit',
-            minute: '2-digit'
-        };
-        document.getElementById('dateTime').textContent = now.toLocaleDateString('zh-CN', options);
-    }
-
-    function addTask() {
-        const input = document.getElementById('taskInput');
-        const dateInput = document.getElementById('taskDate');
-        const reminderSelect = document.getElementById('reminderDays');
-        const repeatSelect = document.getElementById('repeatType');
-        
-        const text = input.value.trim();
-        if (!text) return;
-
-        const task = {
-            id: Date.now(),
-            text: text,
-            completed: false,
-            createdAt: new Date().toISOString(),
-            dueDate: dateInput.value || null,
-            reminderDays: parseInt(reminderSelect.value) || 0,
-            repeatType: repeatSelect.value || 'none'
-        };
-
-        tasks.unshift(task);
-        saveTasks();
-        renderTasks();
-        
-        // 清空输入
-        input.value = '';
-        dateInput.value = '';
-        reminderSelect.value = '0';
-        repeatSelect.value = 'none';
-    }
-
-    function toggleTask(id) {
-        const task = tasks.find(t => t.id === id);
-        if (!task) return;
-
-        task.completed = !task.completed;
-        task.completedAt = task.completed ? new Date().toISOString() : null;
-
-        // 处理重复任务
-        if (task.completed && task.repeatType !== 'none') {
-            createRecurringTask(task);
-        }
-
-        saveTasks();
-        renderTasks();
-    }
-
-    function createRecurringTask(originalTask) {
-        if (!originalTask.dueDate) return;
-
-        const nextDate = new Date(originalTask.dueDate);
-        switch (originalTask.repeatType) {
-            case 'daily':
-                nextDate.setDate(nextDate.getDate() + 1);
-                break;
-            case 'weekly':
-                nextDate.setDate(nextDate.getDate() + 7);
-                break;
-            case 'monthly':
-                nextDate.setMonth(nextDate.getMonth() + 1);
-                break;
-            default:
-                return;
-        }
-
-        const newTask = {
-            ...originalTask,
-            id: Date.now(),
-            completed: false,
-            createdAt: new Date().toISOString(),
-            completedAt: null,
-            dueDate: nextDate.toISOString().split('T')[0]
-        };
-
-        tasks.unshift(newTask);
-    }
-
-    function deleteTask(id) {
-        tasks = tasks.filter(t => t.id !== id);
-        saveTasks();
-        renderTasks();
-    }
-
-    function categorizeTask(task) {
-        if (task.completed) return 'completed';
-        
-        if (!task.dueDate) return 'upcoming';
-        
-        const today = new Date();
-        const taskDate = new Date(task.dueDate);
-        const daysDiff = Math.ceil((taskDate - today) / (1000 * 60 * 60 * 24));
-        
-        if (daysDiff < 0) return 'overdue';
-        if (daysDiff === 0) return 'today';
-        if (task.reminderDays > 0 && daysDiff <= task.reminderDays) return 'reminder';
-        return 'upcoming';
-    }
-
-    function renderTasks() {
-        const taskList = document.getElementById('taskList');
-        let filteredTasks = tasks;
-
-        // 应用过滤器
-        if (currentFilter === 'ongoing') {
-            // 进行中 = 所有未完成的任务（逾期+今日+提醒+未来）
-            filteredTasks = tasks.filter(task => !task.completed);
-        } else if (currentFilter !== 'all') {
-            filteredTasks = tasks.filter(task => categorizeTask(task) === currentFilter);
-        }
-
-        if (filteredTasks.length === 0) {
-            const emptyMessages = {
-                'all': '暂无任务',
-                'ongoing': '暂无进行中的任务', 
-                'overdue': '太棒了！没有逾期任务',
-                'today': '今日无任务安排',
-                'reminder': '暂无提醒任务',
-                'upcoming': '暂无未来任务',
-                'completed': '还没有完成的任务'
-            };
-            
-            taskList.innerHTML = `
-                <div class="empty-state">
-                    <span class="emoji">✨</span>
-                    <div>${emptyMessages[currentFilter] || '该分类暂无任务'}</div>
-                    <small>${currentFilter === 'all' ? '添加第一个任务开始高效生活！' : '切换到其他分类查看'}</small>
-                </div>
-            `;
+        window.onload = function() {
+            loadTasks();
+            renderTasks();
             updateStats();
-            return;
-        }
+            updateDate();
+            
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('taskDate').value = today;
 
-        // 按类别分组
-        const categories = {
-            overdue: { title: '🔥 逾期任务', tasks: [] },
-            today: { title: '⏰ 今日任务', tasks: [] },
-            reminder: { title: '🔔 提醒任务', tasks: [] },
-            upcoming: { title: '📅 未来任务', tasks: [] },
-            completed: { title: '✅ 已完成', tasks: [] }
+            document.getElementById('taskInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    addTask();
+                }
+            });
+
+            // 每分钟检查一次提醒
+            setInterval(checkReminders, 60000);
+            checkReminders();
+            
+            // 每秒更新日期时间
+            setInterval(updateDate, 1000);
+            
+            // 请求通知权限
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
         };
 
-        filteredTasks.forEach(task => {
-            const category = categorizeTask(task);
-            categories[category].tasks.push(task);
-        });
-
-        let html = '';
-        Object.entries(categories).forEach(([key, category]) => {
-            if (category.tasks.length > 0 && (currentFilter === 'all' || currentFilter === key || (currentFilter === 'ongoing' && key !== 'completed'))) {
-                html += `
-                    <div class="task-category">
-                        <div class="category-header">
-                            ${category.title}
-                            <span class="category-count">${category.tasks.length}</span>
-                        </div>
-                        ${category.tasks.map(task => renderTask(task, key)).join('')}
-                    </div>
-                `;
-            }
-        });
-
-        taskList.innerHTML = html;
-        updateStats();
-    }
-
-    function renderTask(task, category) {
-        const now = new Date();
-        const dueDate = task.dueDate ? new Date(task.dueDate) : null;
-        
-        let dueText = '📅 无截止日期';
-        let countdownText = '';
-        
-        if (dueDate) {
-            const daysDiff = Math.ceil((dueDate - now) / (1000 * 60 * 60 * 24));
-            const formattedDate = dueDate.toLocaleDateString('zh-CN');
-            
-            if (daysDiff < 0) {
-                dueText = `📅 ${formattedDate}`;
-                countdownText = `⏰ 逾期${Math.abs(daysDiff)}天`;
-            } else if (daysDiff === 0) {
-                dueText = `📅 ${formattedDate}`;
-                countdownText = `⏰ 今天截止`;
-            } else if (daysDiff === 1) {
-                dueText = `📅 ${formattedDate}`;
-                countdownText = `⏰ 明天截止`;
-            } else {
-                dueText = `📅 ${formattedDate}`;
-                countdownText = `⏰ 还有${daysDiff}天`;
-            }
+        function updateDate() {
+            const now = new Date();
+            const options = { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric', 
+                weekday: 'long',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            document.getElementById('currentDate').textContent = now.toLocaleDateString('zh-CN', options);
         }
-        
-        const repeatText = task.repeatType !== 'none' ? 
-            `🔄 ${{'daily': '每天', 'weekly': '每周', 'monthly': '每月'}[task.repeatType]}` : '';
-        
-        const reminderText = task.reminderDays > 0 ? 
-            `🔔 提前${task.reminderDays}天提醒` : '';
-        
-        return `
-            <div class="task-item ${category}">
-                <div class="task-checkbox ${task.completed ? 'completed' : ''}" 
-                     onclick="toggleTask(${task.id})">
-                    ${task.completed ? '✓' : ''}
-                </div>
-                <div class="task-content">
-                    <div class="task-text ${task.completed ? 'completed' : ''}">${task.text}</div>
-                    <div class="task-meta">
-                        <span>${dueText}</span>
-                        ${countdownText ? `<span style="color: ${category === 'overdue' ? '#ff6b6b' : category === 'today' ? '#feca57' : '#48dbfb'}; font-weight: 600;">${countdownText}</span>` : ''}
-                        ${repeatText ? `<span>${repeatText}</span>` : ''}
-                        ${reminderText ? `<span>${reminderText}</span>` : ''}
-                    </div>
-                </div>
-                <div class="task-actions">
-                    ${task.completed ? 
-                        `<button class="action-btn undo" onclick="toggleTask(${task.id})" title="撤销完成">↩️</button>` :
-                        ''
-                    }
-                    <button class="action-btn delete" onclick="deleteTask(${task.id})" title="删除任务">🗑️</button>
-                </div>
-            </div>
-        `;
-    }
 
-    function updateStats() {
-        const total = tasks.length;
-        const completed = tasks.filter(t => t.completed).length;
-        const ongoing = tasks.filter(t => !t.completed).length;
-        const today = tasks.filter(t => {
-            const cat = categorizeTask(t);
-            return cat === 'today' || cat === 'overdue';
-        }).length;
-        
-        document.getElementById('totalTasks').textContent = total;
-        document.getElementById('completedTasks').textContent = completed;
-        document.getElementById('todayTasks').textContent = today;
-    }
-
-    function saveTasks() {
-        if (isOnline && database) {
-            updateSyncStatus('syncing');
-            try {
-                const tasksRef = ref(database, 'tasks');
-                const tasksObj = {};
-                tasks.forEach(task => {
-                    tasksObj[task.id] = task;
-                });
-                set(tasksRef, tasksObj).then(() => {
-                    updateSyncStatus('online');
-                }).catch(error => {
-                    console.error('云端保存失败:', error);
-                    updateSyncStatus('offline');
-                    saveLocalTasks();
-                });
-            } catch (error) {
-                console.error('同步失败:', error);
-                updateSyncStatus('offline');
-                saveLocalTasks();
-            }
-        } else {
-            saveLocalTasks();
-        }
-    }
-
-    function saveLocalTasks() {
-        try {
-            localStorage.setItem('mobileTasks', JSON.stringify(tasks));
-            localStorage.setItem('tasksBackup', JSON.stringify({
-                tasks: tasks,
-                timestamp: new Date().toISOString(),
-                version: '2.0'
-            }));
-        } catch (error) {
-            console.error('本地保存失败:', error);
-        }
-    }
-
-    function loadLocalTasks() {
-        try {
+        function loadTasks() {
             const saved = localStorage.getItem('mobileTasks');
             if (saved) {
-                tasks = JSON.parse(saved).map(task => ({
-                    ...task,
-                    dueDate: task.dueDate || null,
-                    reminderDays: task.reminderDays || 0,
-                    repeatType: task.repeatType || 'none'
-                }));
-                renderTasks();
+                tasks = JSON.parse(saved);
             }
-        } catch (error) {
-            console.error('加载本地数据失败:', error);
-            tasks = [];
+            
+            const reminded = localStorage.getItem('remindedTasks');
+            if (reminded) {
+                remindedTasks = new Set(JSON.parse(reminded));
+            }
+        }
+
+        function saveTasks() {
+            localStorage.setItem('mobileTasks', JSON.stringify(tasks));
+            localStorage.setItem('remindedTasks', JSON.stringify([...remindedTasks]));
+            updateStats();
+        }
+
+        function addTask() {
+            const input = document.getElementById('taskInput');
+            const dateInput = document.getElementById('taskDate');
+            const reminderSelect = document.getElementById('reminderDays');
+            
+            if (!input.value.trim()) return;
+
+            const task = {
+                id: Date.now(),
+                text: input.value.trim(),
+                date: dateInput.value,
+                reminderDays: parseInt(reminderSelect.value),
+                completed: false,
+                createdAt: new Date().toISOString()
+            };
+
+            tasks.unshift(task);
+            saveTasks();
+            renderTasks();
+
+            input.value = '';
+            const today = new Date().toISOString().split('T')[0];
+            dateInput.value = today;
+            reminderSelect.value = '-1';
+            input.focus();
+        }
+
+        function renderTasks() {
+            const container = document.getElementById('taskList');
+            const filteredTasks = filterTasks();
+
+            if (filteredTasks.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">${getEmptyIcon()}</div>
+                        <div>${getEmptyMessage()}</div>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filteredTasks.map(task => {
+                const countdown = getCountdown(task);
+                const reminderStatus = getReminderStatus(task);
+                return `
+                    <div class="task-item ${task.completed ? 'completed' : ''}" data-id="${task.id}">
+                        <div class="task-checkbox" onclick="toggleTask(${task.id})"></div>
+                        <div class="task-content">
+                            <div class="task-text">${task.text}</div>
+                            <div class="task-meta">
+                                ${task.date ? `<span class="task-date">📅 ${formatDate(task.date)}</span>` : ''}
+                                ${countdown}
+                                ${reminderStatus}
+                            </div>
+                        </div>
+                        <button class="delete-btn" onclick="deleteTask(${task.id})">删除</button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function filterTasks() {
+            const today = new Date().toISOString().split('T')[0];
+            
+            switch(currentFilter) {
+                case 'today':
+                    return tasks.filter(t => !t.completed && t.date === today);
+                case 'ongoing':
+                    return tasks.filter(t => !t.completed);
+                case 'overdue':
+                    return tasks.filter(t => !t.completed && t.date && t.date < today);
+                case 'reminder':
+                    return tasks.filter(t => {
+                        if (t.completed || !t.date || t.reminderDays < 0) return false;
+                        const reminderDate = getActualReminderDate(t);
+                        return reminderDate <= today && t.date >= today;
+                    });
+                case 'upcoming':
+                    return tasks.filter(t => !t.completed && t.date && t.date > today);
+                case 'completed':
+                    return tasks.filter(t => t.completed);
+                default:
+                    return tasks;
+            }
+        }
+
+        function setFilter(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
             renderTasks();
         }
-    }
 
-    function exportData() {
-        const data = {
-            tasks: tasks,
-            exportDate: new Date().toISOString(),
-            version: '2.0',
-            source: 'mobile'
-        };
-        
-        const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `智能待办清单_${new Date().toISOString().split('T')[0]}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-    }
-
-    function importData() {
-        document.getElementById('importFile').click();
-    }
-
-    function handleImport(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            try {
-                const data = JSON.parse(e.target.result);
-                if (data.tasks && Array.isArray(data.tasks)) {
-                    // 数据兼容性处理
-                    const importedTasks = data.tasks.map(task => ({
-                        ...task,
-                        dueDate: task.dueDate || null,
-                        reminderDays: task.reminderDays || 0,
-                        repeatType: task.repeatType || 'none'
-                    }));
-                    
-                    if (confirm('是否合并数据？点击"确定"合并，点击"取消"替换所有数据。')) {
-                        // 合并数据：避免重复ID
-                        const existingIds = new Set(tasks.map(t => t.id));
-                        const newTasks = importedTasks.filter(t => !existingIds.has(t.id));
-                        tasks = [...tasks, ...newTasks];
-                    } else {
-                        // 替换数据
-                        tasks = importedTasks;
-                    }
-                    
-                    saveTasks();
-                    renderTasks();
-                    alert(`数据导入成功！导入了 ${importedTasks.length} 个任务。`);
+        function toggleTask(id) {
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+                task.completed = !task.completed;
+                if (task.completed) {
+                    task.completedAt = new Date().toISOString();
                 } else {
-                    alert('文件格式不正确，请选择有效的备份文件。');
+                    delete task.completedAt;
                 }
-            } catch (error) {
-                console.error('导入失败:', error);
-                alert('导入失败：' + error.message);
+                saveTasks();
+                renderTasks();
             }
-        };
-        reader.readAsText(file);
-        event.target.value = ''; // 清空input
-    }
+        }
 
-    // 暴露全局函数
-    window.addTask = addTask;
-    window.toggleTask = toggleTask;
-    window.deleteTask = deleteTask;
-    window.exportData = exportData;
-    window.importData = importData;
-    window.handleImport = handleImport;
-</script>
-```
+        function deleteTask(id) {
+            if (confirm('确定删除这个任务吗？')) {
+                tasks = tasks.filter(t => t.id !== id);
+                remindedTasks.delete(id);
+                saveTasks();
+                renderTasks();
+            }
+        }
 
+        function clearCompleted() {
+            if (confirm('清理所有已完成的任务？')) {
+                tasks = tasks.filter(t => !t.completed);
+                saveTasks();
+                renderTasks();
+            }
+        }
+
+        function getCountdown(task) {
+            if (!task.date || task.completed) return '';
+            
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const dueDate = new Date(task.date);
+            dueDate.setHours(0, 0, 0, 0);
+            
+            const diffTime = dueDate - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays < 0) {
+                return `<span class="countdown overdue">逾期${Math.abs(diffDays)}天</span>`;
+            } else if (diffDays === 0) {
+                return `<span class="countdown today">今天截止</span>`;
+            } else if (diffDays === 1) {
+                return `<span class="countdown tomorrow">明天截止</span>`;
+            } else if (diffDays <= 7) {
+                return `<span class="countdown future">还有${diffDays}天</span>`;
+            } else {
+                return `<span class="countdown future">还有${diffDays}天</span>`;
+            }
+        }
+
+        function getReminderStatus(task) {
+            if (!task.date || task.completed || task.reminderDays < 0) return '';
+            
+            const today = new Date().toISOString().split('T')[0];
+            const reminderDate = getActualReminderDate(task);
+            
+            if (reminderDate <= today && task.date >= today) {
+                return `<span class="countdown reminder">🔔 提醒中</span>`;
+            }
+            return '';
+        }
+
+        function getActualReminderDate(task) {
+            const dueDate = new Date(task.date);
+            const reminderDate = new Date(dueDate);
+            reminderDate.setDate(reminderDate.getDate() - task.reminderDays);
+            return reminderDate.toISOString().split('T')[0];
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            const month = date.getMonth() + 1;
+            const day = date.getDate();
+            const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+            const weekday = weekdays[date.getDay()];
+            return `${month}月${day}日 周${weekday}`;
+        }
+
+        function updateStats() {
+            const today = new Date().toISOString().split('T')[0];
+            const ongoing = tasks.filter(t => !t.completed).length;
+            const todayTasks = tasks.filter(t => !t.completed && t.date === today).length;
+            const overdue = tasks.filter(t => !t.completed && t.date && t.date < today).length;
+            const completed = tasks.filter(t => t.completed).length;
+            
+            document.getElementById('ongoingCount').textContent = ongoing;
+            document.getElementById('todayCount').textContent = todayTasks;
+            document.getElementById('overdueCount').textContent = overdue;
+            document.getElementById('completedCount').textContent = completed;
+        }
+
+        function checkReminders() {
+            const now = new Date();
+            const today = now.toISOString().split('T')[0];
+            const currentHour = now.getHours();
+            
+            // 上班时间提醒 (8:00 - 20:00)
+            if (currentHour < 8 || currentHour > 20) return;
+            
+            tasks.forEach(task => {
+                if (task.completed || !task.date || task.reminderDays < 0) return;
+                
+                // 每个任务每天只提醒一次
+                const todayReminderKey = `${task.id}_${today}`;
+                if (remindedTasks.has(todayReminderKey)) return;
+                
+                const reminderDate = getActualReminderDate(task);
+                
+                // 如果到了提醒日期
+                if (reminderDate <= today && task.date >= today) {
+                    showNotification(task);
+                    remindedTasks.add(todayReminderKey);
+                    saveTasks();
+                }
+                
+                // 逾期任务每天提醒一次
+                if (task.date < today) {
+                    showNotification(task, true);
+                    remindedTasks.add(todayReminderKey);
+                    saveTasks();
+                }
+            });
+        }
+
+        function showNotification(task, isOverdue = false) {
+            // 页面内通知
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            
+            const countdown = getCountdown(task);
+            const countdownText = countdown ? countdown.replace(/<[^>]*>/g, '') : '';
+            
+            notification.innerHTML = `
+                <div class="notification-header">
+                    <div class="notification-title">
+                        ${isOverdue ? '🔥 逾期提醒' : '🔔 任务提醒'}
+                    </div>
+                    <button class="notification-close" onclick="this.parentElement.parentElement.remove()">×</button>
+                </div>
+                <div class="notification-body">
+                    <div><strong>${task.text}</strong></div>
+                    <div class="notification-time">
+                        截止日期：${formatDate(task.date)}
+                        ${countdownText ? `(${countdownText})` : ''}
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // 浏览器通知（如果权限允许）
+            if ('Notification' in window && Notification.permission === 'granted') {
+                const browserNotification = new Notification(
+                    isOverdue ? '⏰ 逾期任务提醒' : '🔔 任务提醒', 
+                    {
+                        body: `${task.text}\n截止：${formatDate(task.date)} ${countdownText}`,
+                        icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23667eea"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>',
+                        tag: task.id.toString(),
+                        requireInteraction: false
+                    }
+                );
+                
+                browserNotification.onclick = function() {
+                    window.focus();
+                    this.close();
+                };
+            }
+            
+            // 播放提醒音效
+            playNotificationSound();
+            
+            // 10秒后自动移除页面内通知
+            setTimeout(() => {
+                notification.style.animation = 'slideUp 0.3s ease';
+                setTimeout(() => {
+                    if (notification.parentElement) {
+                        notification.remove();
+                    }
+                }, 300);
+            }, 10000);
+        }
+
+        function playNotificationSound() {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                // 创建一个悦耳的提醒音
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(880, audioContext.currentTime); // A5
+                oscillator.frequency.exponentialRampToValueAtTime(440, audioContext.currentTime + 0.1); // A4
+                
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.5);
+            } catch (e) {
+                console.log('音效播放失败', e);
+            }
+        }
+
+        function testReminder() {
+            // 创建测试任务显示提醒
+            const testTask = {
+                id: 'test_' + Date.now(),
+                text: '这是一个测试提醒任务',
+                date: new Date().toISOString().split('T')[0],
+                reminderDays: 0
+            };
+            showNotification(testTask);
+        }
+
+        function exportData() {
+            const dataStr = JSON.stringify(tasks, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `待办清单_${new Date().toLocaleDateString().replace(/\//g, '-')}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedTasks = JSON.parse(e.target.result);
+                    if (Array.isArray(importedTasks)) {
+                        if (confirm('是否合并导入的任务？\n选择"确定"合并，选择"取消"替换')) {
+                            // 合并任务
+                            const existingIds = new Set(tasks.map(t => t.id));
+                            const newTasks = importedTasks.filter(t => !existingIds.has(t.id));
+                            tasks = [...tasks, ...newTasks];
+                        } else {
+                            // 替换任务
+                            tasks = importedTasks;
+                            remindedTasks.clear(); // 清空已提醒记录
+                        }
+                        saveTasks();
+                        renderTasks();
+                        alert('导入成功！');
+                    }
+                } catch (error) {
+                    alert('导入失败，请检查文件格式');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function getEmptyIcon() {
+            switch(currentFilter) {
+                case 'today': return '☀️';
+                case 'ongoing': return '🚀';
+                case 'overdue': return '⏰';
+                case 'reminder': return '🔔';
+                case 'upcoming': return '📅';
+                case 'completed': return '🎉';
+                default: return '📝';
+            }
+        }
+
+        function getEmptyMessage() {
+            switch(currentFilter) {
+                case 'today': return '今天没有任务，享受美好的一天！';
+                case 'ongoing': return '没有进行中的任务';
+                case 'overdue': return '太棒了，没有逾期任务！';
+                case 'reminder': return '没有待提醒的任务';
+                case 'upcoming': return '未来暂无安排';
+                case 'completed': return '还没有完成的任务';
+                default: return '暂无任务，开始添加吧！';
+            }
+        }
+
+        // PWA支持 - 添加到主屏幕
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch(() => {
+                    console.log('Service Worker 注册失败');
+                });
+            });
+        }
+    </script>
 </body>
 </html>
