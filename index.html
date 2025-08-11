@@ -556,13 +556,23 @@
         let currentFilter = 'all';
         let currentTaskType = 'task';
 
+        // 简单修复时区问题的函数
+        function getLocalDate() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
         window.onload = function() {
             loadTasks();
             renderTasks();
             updateStats();
             updateDate();
             
-            const today = new Date().toISOString().split('T')[0];
+            // 设置今天的日期
+            const today = getLocalDate();
             document.getElementById('taskDate').value = today;
             document.getElementById('billDueDate').value = today;
 
@@ -638,8 +648,7 @@
             renderTasks();
 
             input.value = '';
-            const today = new Date().toISOString().split('T')[0];
-            dateInput.value = today;
+            dateInput.value = getLocalDate();
             reminderSelect.value = '-1';
             input.focus();
         }
@@ -675,8 +684,7 @@
             // 清空表单
             document.getElementById('billName').value = '';
             document.getElementById('billAmount').value = '';
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('billDueDate').value = today;
+            document.getElementById('billDueDate').value = getLocalDate();
             document.getElementById('billReminderDays').value = '3';
             document.getElementById('billRecurring').value = 'none';
             
@@ -722,7 +730,7 @@
         }
 
         function filterTasks() {
-            const today = new Date().toISOString().split('T')[0];
+            const today = getLocalDate(); // 使用本地日期
             
             switch(currentFilter) {
                 case 'today':
@@ -771,7 +779,7 @@
         }
 
         function createNextBill(originalBill) {
-            const nextDate = new Date(originalBill.date);
+            const nextDate = new Date(originalBill.date + 'T00:00:00'); // 避免时区问题
             
             if (originalBill.recurring === 'monthly') {
                 nextDate.setMonth(nextDate.getMonth() + 1);
@@ -781,10 +789,14 @@
                 return;
             }
             
+            const year = nextDate.getFullYear();
+            const month = String(nextDate.getMonth() + 1).padStart(2, '0');
+            const day = String(nextDate.getDate()).padStart(2, '0');
+            
             const nextBill = {
                 ...originalBill,
                 id: Date.now() + 1,
-                date: nextDate.toISOString().split('T')[0],
+                date: `${year}-${month}-${day}`,
                 completed: false,
                 createdAt: new Date().toISOString()
             };
@@ -813,11 +825,13 @@
             if (!task.date || task.completed) return '';
             
             const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            const dueDate = new Date(task.date);
-            dueDate.setHours(0, 0, 0, 0);
+            const taskDate = new Date(task.date + 'T00:00:00'); // 避免时区问题
             
-            const diffTime = dueDate - today;
+            // 设置为当天0点进行比较
+            today.setHours(0, 0, 0, 0);
+            taskDate.setHours(0, 0, 0, 0);
+            
+            const diffTime = taskDate - today;
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
             
             if (diffDays < 0) {
@@ -834,7 +848,7 @@
         }
 
         function formatDate(dateStr) {
-            const date = new Date(dateStr);
+            const date = new Date(dateStr + 'T00:00:00'); // 避免时区问题
             const month = date.getMonth() + 1;
             const day = date.getDate();
             const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
@@ -843,7 +857,7 @@
         }
 
         function updateStats() {
-            const today = new Date().toISOString().split('T')[0];
+            const today = getLocalDate(); // 使用本地日期
             const ongoing = tasks.filter(t => !t.completed).length;
             const bills = tasks.filter(t => t.type === 'bill' && !t.completed).length;
             const overdue = tasks.filter(t => !t.completed && t.date && t.date < today).length;
