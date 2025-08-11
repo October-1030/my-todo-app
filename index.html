@@ -1,9 +1,192 @@
-}
+{
+  `body`: `<!DOCTYPE html>
+<html lang=\"zh-CN\">
+<head>
+    <meta charset=\"UTF-8\">
+    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no\">
+    <title>智能待办清单</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 500px; margin: 0 auto; background: rgba(255, 255, 255, 0.95); border-radius: 20px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); overflow: hidden; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; }
+        .header h1 { font-size: 24px; margin-bottom: 5px; }
+        .header p { opacity: 0.9; font-size: 14px; }
+        .task-type-switcher { display: flex; background: #f0f0f0; padding: 5px; margin: 10px 10px 0; border-radius: 10px; }
+        .type-btn { flex: 1; padding: 8px; border: none; background: transparent; color: #666; border-radius: 8px; cursor: pointer; font-size: 14px; transition: all 0.3s; }
+        .type-btn.active { background: white; color: #667eea; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); }
+        .add-section { padding: 20px; background: #f8f9fa; border-bottom: 1px solid #e0e0e0; }
+        .input-group { display: flex; gap: 10px; margin-bottom: 10px; }
+        #taskInput, #billName { flex: 1; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 16px; transition: border-color 0.3s; }
+        #taskInput:focus, #billName:focus { outline: none; border-color: #667eea; }
+        .add-btn { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 12px 24px; border-radius: 10px; font-size: 16px; cursor: pointer; transition: transform 0.2s; }
+        .add-btn:hover { transform: scale(1.05); }
+        .date-controls { display: flex; gap: 10px; }
+        .date-controls input, .date-controls select { flex: 1; padding: 10px; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 14px; }
+        .bill-section { display: none; padding: 20px; background: #fff5f5; border-bottom: 1px solid #e0e0e0; }
+        .bill-section.active { display: block; }
+        .bill-amount-group { display: flex; gap: 10px; margin-bottom: 10px; }
+        #billAmount { flex: 1; padding: 10px; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 14px; }
+        .filters { padding: 15px; background: white; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; border-bottom: 1px solid #e0e0e0; }
+        .filter-btn { background: #f0f0f0; border: 1px solid #ddd; color: #666; padding: 8px 14px; border-radius: 20px; font-size: 12px; cursor: pointer; transition: all 0.3s; white-space: nowrap; }
+        .filter-btn:hover { background: #e8e8e8; }
+        .filter-btn.active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-color: transparent; }
+        .task-list { padding: 20px; max-height: 400px; overflow-y: auto; }
+        .task-item { background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 15px; margin-bottom: 10px; display: flex; align-items: flex-start; gap: 12px; transition: all 0.3s; cursor: pointer; }
+        .task-item.bill-item { background: linear-gradient(to right, #fff5f5, white); border-left: 3px solid #ff6b6b; }
+        .task-item:hover { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); transform: translateY(-2px); }
+        .task-item.completed { opacity: 0.6; background: #f8f8f8; }
+        .task-checkbox { width: 20px; height: 20px; border: 2px solid #667eea; border-radius: 50%; cursor: pointer; position: relative; flex-shrink: 0; margin-top: 2px; }
+        .task-item.completed .task-checkbox { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; }
+        .task-item.completed .task-checkbox::after { content: '✓'; color: white; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 12px; }
+        .task-content { flex: 1; }
+        .task-text { font-size: 15px; color: #333; margin-bottom: 5px; word-wrap: break-word; }
+        .task-item.completed .task-text { text-decoration: line-through; color: #999; }
+        .task-meta { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+        .task-date { font-size: 12px; color: #666; }
+        .bill-amount { font-size: 14px; font-weight: bold; color: #ff6b6b; }
+        .countdown { font-size: 11px; padding: 2px 8px; border-radius: 12px; color: white; font-weight: 500; }
+        .countdown.overdue { background: #ef4444; }
+        .countdown.today { background: #f59e0b; }
+        .countdown.tomorrow { background: #3b82f6; }
+        .countdown.future { background: #8b5cf6; }
+        .countdown.reminder { background: #a855f7; }
+        .delete-btn { background: #ff4757; color: white; border: none; padding: 4px 8px; border-radius: 6px; font-size: 12px; cursor: pointer; opacity: 0; transition: opacity 0.3s; }
+        .task-item:hover .delete-btn { opacity: 1; }
+        .empty-state { text-align: center; padding: 40px; color: #999; }
+        .empty-state .icon { font-size: 48px; margin-bottom: 10px; }
+        .stats { padding: 15px 20px; background: #f8f9fa; display: flex; justify-content: space-around; border-top: 1px solid #e0e0e0; }
+        .stat-item { text-align: center; }
+        .stat-value { font-size: 24px; font-weight: bold; color: #667eea; }
+        .stat-label { font-size: 12px; color: #666; margin-top: 5px; }
+        .footer { padding: 15px 20px; background: white; display: flex; gap: 10px; }
+        .footer button { flex: 1; padding: 10px; border: 1px solid #e0e0e0; background: white; border-radius: 8px; font-size: 14px; cursor: pointer; transition: all 0.3s; }
+        .footer button:hover { background: #f8f9fa; border-color: #667eea; }
+        #importFile { display: none; }
+    </style>
+</head>
+<body>
+    <div class=\"container\">
+        <div class=\"header\">
+            <h1>📋 智能待办清单</h1>
+            <p id=\"currentDate\"></p>
+        </div>
 
-        function saveTasks() {
-            localStorage.setItem('mobileTasks', JSON.stringify(tasks));
-            localStorage.setItem('remindedTasks', JSON.stringify([...remindedTasks]));
+        <div class=\"task-type-switcher\">
+            <button class=\"type-btn active\" onclick=\"switchTaskType('task')\">📝 普通任务</button>
+            <button class=\"type-btn\" onclick=\"switchTaskType('bill')\">💳 账单提醒</button>
+        </div>
+
+        <div class=\"add-section\" id=\"taskSection\">
+            <div class=\"input-group\">
+                <input type=\"text\" id=\"taskInput\" placeholder=\"添加新任务...\" />
+                <button class=\"add-btn\" onclick=\"addTask()\">添加</button>
+            </div>
+            <div class=\"date-controls\">
+                <input type=\"date\" id=\"taskDate\" />
+                <select id=\"reminderDays\">
+                    <option value=\"-1\">不提醒</option>
+                    <option value=\"0\">当天提醒</option>
+                    <option value=\"1\">提前1天</option>
+                    <option value=\"3\">提前3天</option>
+                    <option value=\"7\">提前7天</option>
+                </select>
+            </div>
+        </div>
+
+        <div class=\"bill-section\" id=\"billSection\">
+            <div class=\"input-group\">
+                <input type=\"text\" id=\"billName\" placeholder=\"账单名称（如：房租）\" />
+            </div>
+            <div class=\"bill-amount-group\">
+                <input type=\"number\" id=\"billAmount\" placeholder=\"金额\" step=\"0.01\" />
+                <input type=\"date\" id=\"billDueDate\" />
+            </div>
+            <div class=\"date-controls\">
+                <select id=\"billReminderDays\">
+                    <option value=\"3\">提前3天提醒</option>
+                    <option value=\"7\">提前7天提醒</option>
+                    <option value=\"30\">提前30天提醒</option>
+                </select>
+            </div>
+            <button class=\"add-btn\" onclick=\"addBill()\" style=\"width: 100%;\">添加账单</button>
+        </div>
+
+        <div class=\"filters\">
+            <button class=\"filter-btn active\" onclick=\"setFilter('all')\">📋 全部</button>
+            <button class=\"filter-btn\" onclick=\"setFilter('today')\">⏰ 今日</button>
+            <button class=\"filter-btn\" onclick=\"setFilter('ongoing')\">🚀 进行中</button>
+            <button class=\"filter-btn\" onclick=\"setFilter('bills')\">💳 账单</button>
+            <button class=\"filter-btn\" onclick=\"setFilter('overdue')\">🔥 逾期</button>
+            <button class=\"filter-btn\" onclick=\"setFilter('upcoming')\">📅 未来</button>
+            <button class=\"filter-btn\" onclick=\"setFilter('completed')\">✅ 完成</button>
+        </div>
+
+        <div class=\"task-list\" id=\"taskList\">
+            <div class=\"empty-state\">
+                <div class=\"icon\">📝</div>
+                <div>暂无任务</div>
+            </div>
+        </div>
+
+        <div class=\"stats\">
+            <div class=\"stat-item\">
+                <div class=\"stat-value\" id=\"ongoingCount\">0</div>
+                <div class=\"stat-label\">进行中</div>
+            </div>
+            <div class=\"stat-item\">
+                <div class=\"stat-value\" id=\"billCount\">0</div>
+                <div class=\"stat-label\">账单</div>
+            </div>
+            <div class=\"stat-item\">
+                <div class=\"stat-value\" id=\"completedCount\">0</div>
+                <div class=\"stat-label\">已完成</div>
+            </div>
+        </div>
+
+        <div class=\"footer\">
+            <button onclick=\"exportData()\">📤 导出</button>
+            <button onclick=\"document.getElementById('importFile').click()\">📥 导入</button>
+            <button onclick=\"clearCompleted()\">🧹 清理</button>
+        </div>
+    </div>
+
+    <input type=\"file\" id=\"importFile\" accept=\".json\" onchange=\"importData(event)\" />
+
+    <script>
+        let tasks = [];
+        let currentFilter = 'all';
+        let currentTaskType = 'task';
+
+        window.onload = function() {
+            loadTasks();
+            renderTasks();
             updateStats();
+            updateDate();
+            
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('taskDate').value = today;
+            document.getElementById('billDueDate').value = today;
+
+            document.getElementById('taskInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') addTask();
+            });
+
+            setInterval(updateDate, 1000);
+        };
+
+        function switchTaskType(type) {
+            currentTaskType = type;
+            document.querySelectorAll('.type-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if (type === 'task') {
+                document.getElementById('taskSection').style.display = 'block';
+                document.getElementById('billSection').classList.remove('active');
+            } else {
+                document.getElementById('taskSection').style.display = 'none';
+                document.getElementById('billSection').classList.add('active');
+            }
         }
 
         function addTask() {
@@ -34,850 +217,14 @@
             input.focus();
         }
 
-        function renderTasks() {
-            const container = document.getElementById('taskList');
-            const filteredTasks = filterTasks();
-
-            if (filteredTasks.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="icon">${getEmptyIcon()}</div>
-                        <div>${getEmptyMessage()}</div>
-                    </div>
-                `;
-                return;
-            }
-
-            container.innerHTML = filteredTasks.map(task => {
-                const isBill = task.type === 'bill';
-                const countdown = getCountdown(task);
-                const reminderStatus = getReminderStatus(task);
-                
-                return `
-                    <div class="task-item ${task.completed ? 'completed' : ''} ${isBill ? 'bill-item' : ''}" data-id="${task.id}">
-                        <div class="task-checkbox" onclick="toggleTask(${task.id})"></div>
-                        <div class="task-content">
-                            <div class="task-text">${isBill ? '💳 ' : ''}${task.text}</div>
-                            <div class="task-meta">
-                                ${isBill && task.amount ? `<span class="bill-amount">¥${task.amount.toFixed(2)}</span>` : ''}
-                                ${task.date ? `<span class="task-date">📅 ${formatDate(task.date)}</span>` : ''}
-                                ${countdown}
-                                ${reminderStatus}
-                                ${isBill && task.photo ? `<span class="bill-photo-indicator" onclick="showBillDetails(${task.id})">📷 查看</span>` : ''}
-                                ${isBill && task.recurring !== 'none' ? `<span style="font-size: 11px; color: #667eea;">🔄 ${task.recurring === 'monthly' ? '每月' : '每年'}</span>` : ''}
-                            </div>
-                        </div>
-                        <button class="delete-btn" onclick="deleteTask(${task.id})">删除</button>
-                    </div>
-                `;<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>智能待办清单</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 500px;
-            margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            overflow: hidden;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
-
-        .header h1 {
-            font-size: 24px;
-            margin-bottom: 5px;
-        }
-
-        .header p {
-            opacity: 0.9;
-            font-size: 14px;
-        }
-
-        /* 任务类型切换 */
-        .task-type-switcher {
-            display: flex;
-            background: #f0f0f0;
-            padding: 5px;
-            margin: 10px 10px 0;
-            border-radius: 10px;
-        }
-
-        .type-btn {
-            flex: 1;
-            padding: 8px;
-            border: none;
-            background: transparent;
-            color: #666;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s;
-        }
-
-        .type-btn.active {
-            background: white;
-            color: #667eea;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .add-section {
-            padding: 20px;
-            background: #f8f9fa;
-            border-bottom: 1px solid #e0e0e0;
-        }
-
-        .input-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-
-        #taskInput, #billName {
-            flex: 1;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-        }
-
-        #taskInput:focus, #billName:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .add-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 10px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-
-        .add-btn:hover {
-            transform: scale(1.05);
-        }
-
-        .date-controls {
-            display: flex;
-            gap: 10px;
-        }
-
-        .date-controls input,
-        .date-controls select {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 14px;
-        }
-
-        /* 账单添加区域 */
-        .bill-section {
-            display: none;
-            padding: 20px;
-            background: #fff5f5;
-            border-bottom: 1px solid #e0e0e0;
-        }
-
-        .bill-section.active {
-            display: block;
-        }
-
-        .bill-controls {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-
-        .bill-amount-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-
-        #billAmount {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 14px;
-        }
-
-        .photo-upload {
-            margin-bottom: 10px;
-        }
-
-        .photo-btn {
-            width: 100%;
-            padding: 12px;
-            background: #f0f0f0;
-            border: 2px dashed #ccc;
-            border-radius: 10px;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.3s;
-        }
-
-        .photo-btn:hover {
-            background: #e8e8e8;
-            border-color: #667eea;
-        }
-
-        .photo-preview {
-            display: none;
-            position: relative;
-            margin-top: 10px;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        .photo-preview img {
-            width: 100%;
-            max-height: 200px;
-            object-fit: cover;
-        }
-
-        .photo-remove {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(255, 255, 255, 0.9);
-            color: #ff4757;
-            border: none;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 18px;
-        }
-
-        .filters {
-            padding: 15px;
-            background: white;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            justify-content: center;
-            border-bottom: 1px solid #e0e0e0;
-        }
-
-        .filter-btn {
-            background: #f0f0f0;
-            border: 1px solid #ddd;
-            color: #666;
-            padding: 8px 14px;
-            border-radius: 20px;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.3s;
-            white-space: nowrap;
-        }
-
-        .filter-btn:hover {
-            background: #e8e8e8;
-        }
-
-        .filter-btn.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-color: transparent;
-        }
-
-        .task-list {
-            padding: 20px;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-
-        .task-item {
-            background: white;
-            border: 1px solid #e0e0e0;
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            transition: all 0.3s;
-            cursor: pointer;
-        }
-
-        .task-item.bill-item {
-            background: linear-gradient(to right, #fff5f5, white);
-            border-left: 3px solid #ff6b6b;
-        }
-
-        .task-item:hover {
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            transform: translateY(-2px);
-        }
-
-        .task-item.completed {
-            opacity: 0.6;
-            background: #f8f8f8;
-        }
-
-        .task-checkbox {
-            width: 20px;
-            height: 20px;
-            border: 2px solid #667eea;
-            border-radius: 50%;
-            cursor: pointer;
-            position: relative;
-            flex-shrink: 0;
-            margin-top: 2px;
-        }
-
-        .task-item.completed .task-checkbox {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-        }
-
-        .task-item.completed .task-checkbox::after {
-            content: '✓';
-            color: white;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 12px;
-        }
-
-        .task-content {
-            flex: 1;
-        }
-
-        .task-text {
-            font-size: 15px;
-            color: #333;
-            margin-bottom: 5px;
-            word-wrap: break-word;
-        }
-
-        .task-item.completed .task-text {
-            text-decoration: line-through;
-            color: #999;
-        }
-
-        .task-meta {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-
-        .task-date {
-            font-size: 12px;
-            color: #666;
-        }
-
-        .bill-amount {
-            font-size: 14px;
-            font-weight: bold;
-            color: #ff6b6b;
-        }
-
-        .bill-photo-indicator {
-            font-size: 12px;
-            color: #667eea;
-            cursor: pointer;
-        }
-
-        .countdown {
-            font-size: 11px;
-            padding: 2px 8px;
-            border-radius: 12px;
-            color: white;
-            font-weight: 500;
-        }
-
-        .countdown.overdue {
-            background: #ef4444;
-        }
-
-        .countdown.today {
-            background: #f59e0b;
-        }
-
-        .countdown.tomorrow {
-            background: #3b82f6;
-        }
-
-        .countdown.future {
-            background: #8b5cf6;
-        }
-
-        .countdown.reminder {
-            background: #a855f7;
-        }
-
-        .delete-btn {
-            background: #ff4757;
-            color: white;
-            border: none;
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-size: 12px;
-            cursor: pointer;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-        .task-item:hover .delete-btn {
-            opacity: 1;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 40px;
-            color: #999;
-        }
-
-        .empty-state .icon {
-            font-size: 48px;
-            margin-bottom: 10px;
-        }
-
-        .stats {
-            padding: 15px 20px;
-            background: #f8f9fa;
-            display: flex;
-            justify-content: space-around;
-            border-top: 1px solid #e0e0e0;
-        }
-
-        .stat-item {
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 24px;
-            font-weight: bold;
-            color: #667eea;
-        }
-
-        .stat-label {
-            font-size: 12px;
-            color: #666;
-            margin-top: 5px;
-        }
-
-        .footer {
-            padding: 15px 20px;
-            background: white;
-            display: flex;
-            gap: 10px;
-        }
-
-        .footer button {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #e0e0e0;
-            background: white;
-            border-radius: 8px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .footer button:hover {
-            background: #f8f9fa;
-            border-color: #667eea;
-        }
-
-        /* 账单详情弹窗 */
-        .bill-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            padding: 20px;
-        }
-
-        .bill-modal.active {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .bill-modal-content {
-            background: white;
-            border-radius: 15px;
-            max-width: 400px;
-            width: 100%;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-
-        .bill-modal-header {
-            padding: 15px 20px;
-            border-bottom: 1px solid #e0e0e0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .bill-modal-body {
-            padding: 20px;
-        }
-
-        .bill-modal-image {
-            width: 100%;
-            border-radius: 10px;
-            margin-bottom: 15px;
-        }
-
-        .bill-details {
-            font-size: 14px;
-            line-height: 1.6;
-        }
-
-        .bill-details strong {
-            color: #667eea;
-        }
-
-        /* 提醒通知弹窗 */
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            left: 20px;
-            max-width: 400px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-            padding: 16px;
-            z-index: 1000;
-            animation: slideDown 0.3s ease;
-        }
-
-        .notification.bill-notification {
-            background: linear-gradient(to right, #fff5f5, white);
-            border-left: 4px solid #ff6b6b;
-        }
-
-        .notification-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .notification-title {
-            font-weight: 600;
-            color: #333;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .notification-close {
-            background: none;
-            border: none;
-            font-size: 20px;
-            color: #999;
-            cursor: pointer;
-        }
-
-        .notification-body {
-            color: #666;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-
-        .notification-time {
-            margin-top: 8px;
-            font-size: 12px;
-            color: #999;
-        }
-
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 1;
-                transform: translateY(0);
-            }
-            to {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-        }
-
-        #importFile, #billPhoto {
-            display: none;
-        }
-
-        /* 响应式优化 */
-        @media (max-width: 480px) {
-            body {
-                padding: 0;
-            }
-            
-            .container {
-                border-radius: 0;
-                min-height: 100vh;
-            }
-            
-            .task-list {
-                max-height: calc(100vh - 520px);
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>📋 智能待办清单</h1>
-            <p id="currentDate"></p>
-        </div>
-
-        <!-- 任务类型切换 -->
-        <div class="task-type-switcher">
-            <button class="type-btn active" onclick="switchTaskType('task')">📝 普通任务</button>
-            <button class="type-btn" onclick="switchTaskType('bill')">💳 账单提醒</button>
-        </div>
-
-        <!-- 普通任务添加区域 -->
-        <div class="add-section" id="taskSection">
-            <div class="input-group">
-                <input type="text" id="taskInput" placeholder="添加新任务..." />
-                <button class="add-btn" onclick="addTask()">添加</button>
-            </div>
-            <div class="date-controls">
-                <input type="date" id="taskDate" />
-                <select id="reminderDays">
-                    <option value="-1">不提醒</option>
-                    <option value="0">当天提醒</option>
-                    <option value="1">提前1天</option>
-                    <option value="3">提前3天</option>
-                    <option value="7">提前7天</option>
-                    <option value="14">提前14天</option>
-                </select>
-            </div>
-        </div>
-
-        <!-- 账单添加区域 -->
-        <div class="bill-section" id="billSection">
-            <div class="input-group">
-                <input type="text" id="billName" placeholder="账单名称（如：XX会员费）" />
-            </div>
-            <div class="bill-amount-group">
-                <input type="number" id="billAmount" placeholder="金额" step="0.01" />
-                <input type="date" id="billDueDate" />
-            </div>
-            <div class="date-controls">
-                <select id="billReminderDays">
-                    <option value="3">提前3天提醒</option>
-                    <option value="7">提前7天提醒</option>
-                    <option value="14">提前14天提醒</option>
-                    <option value="30">提前30天提醒</option>
-                </select>
-                <select id="billRecurring">
-                    <option value="none">不重复</option>
-                    <option value="monthly">每月重复</option>
-                    <option value="yearly">每年重复</option>
-                </select>
-            </div>
-            <div class="photo-upload">
-                <button class="photo-btn" onclick="document.getElementById('billPhoto').click()">
-                    📷 拍照/上传账单图片
-                </button>
-                <input type="file" id="billPhoto" accept="image/*" capture="camera" onchange="handlePhotoUpload(event)" />
-                <div class="photo-preview" id="photoPreview">
-                    <img id="previewImage" src="" alt="账单预览" />
-                    <button class="photo-remove" onclick="removePhoto()">×</button>
-                </div>
-            </div>
-            <button class="add-btn" onclick="addBill()" style="width: 100%;">添加账单提醒</button>
-        </div>
-
-        <div class="filters">
-            <button class="filter-btn active" onclick="setFilter('all')">📋 全部</button>
-            <button class="filter-btn" onclick="setFilter('today')">⏰ 今日</button>
-            <button class="filter-btn" onclick="setFilter('ongoing')">🚀 进行中</button>
-            <button class="filter-btn" onclick="setFilter('bills')">💳 账单</button>
-            <button class="filter-btn" onclick="setFilter('overdue')">🔥 逾期</button>
-            <button class="filter-btn" onclick="setFilter('reminder')">🔔 提醒</button>
-            <button class="filter-btn" onclick="setFilter('upcoming')">📅 未来</button>
-            <button class="filter-btn" onclick="setFilter('completed')">✅ 完成</button>
-        </div>
-
-        <div class="task-list" id="taskList">
-            <div class="empty-state">
-                <div class="icon">📝</div>
-                <div>暂无任务，开始添加吧！</div>
-            </div>
-        </div>
-
-        <div class="stats">
-            <div class="stat-item">
-                <div class="stat-value" id="ongoingCount">0</div>
-                <div class="stat-label">进行中</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value" id="billCount">0</div>
-                <div class="stat-label">待付账单</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value" id="overdueCount">0</div>
-                <div class="stat-label">逾期</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value" id="completedCount">0</div>
-                <div class="stat-label">已完成</div>
-            </div>
-        </div>
-
-        <div class="footer">
-            <button onclick="exportData()">📤 导出</button>
-            <button onclick="document.getElementById('importFile').click()">📥 导入</button>
-            <button onclick="clearCompleted()">🧹 清理</button>
-            <button onclick="testReminder()">🔔 测试</button>
-        </div>
-    </div>
-
-    <!-- 账单详情弹窗 -->
-    <div class="bill-modal" id="billModal">
-        <div class="bill-modal-content">
-            <div class="bill-modal-header">
-                <h3>账单详情</h3>
-                <button class="notification-close" onclick="closeBillModal()">×</button>
-            </div>
-            <div class="bill-modal-body" id="billModalBody">
-                <!-- 动态内容 -->
-            </div>
-        </div>
-    </div>
-
-    <input type="file" id="importFile" accept=".json" onchange="importData(event)" />
-
-    <script>
-        let tasks = [];
-        let currentFilter = 'all';
-        let currentTaskType = 'task';
-        let remindedTasks = new Set();
-        let currentPhotoData = null;
-
-        window.onload = function() {
-            loadTasks();
-            renderTasks();
-            updateStats();
-            updateDate();
-            
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('taskDate').value = today;
-            document.getElementById('billDueDate').value = today;
-
-            document.getElementById('taskInput').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    addTask();
-                }
-            });
-
-            document.getElementById('billName').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    document.getElementById('billAmount').focus();
-                }
-            });
-
-            // 每分钟检查一次提醒
-            setInterval(checkReminders, 60000);
-            checkReminders();
-            
-            // 每秒更新日期时间
-            setInterval(updateDate, 1000);
-            
-            // 请求通知权限
-            if ('Notification' in window && Notification.permission === 'default') {
-                Notification.requestPermission();
-            }
-        };
-
-        function switchTaskType(type) {
-            currentTaskType = type;
-            document.querySelectorAll('.type-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.target.classList.add('active');
-            
-            if (type === 'task') {
-                document.getElementById('taskSection').style.display = 'block';
-                document.getElementById('billSection').classList.remove('active');
-            } else {
-                document.getElementById('taskSection').style.display = 'none';
-                document.getElementById('billSection').classList.add('active');
-            }
-        }
-
-        function handlePhotoUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                currentPhotoData = e.target.result;
-                document.getElementById('previewImage').src = currentPhotoData;
-                document.getElementById('photoPreview').style.display = 'block';
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function removePhoto() {
-            currentPhotoData = null;
-            document.getElementById('photoPreview').style.display = 'none';
-            document.getElementById('billPhoto').value = '';
-        }
-
         function addBill() {
             const name = document.getElementById('billName').value.trim();
             const amount = document.getElementById('billAmount').value;
             const dueDate = document.getElementById('billDueDate').value;
             const reminderDays = parseInt(document.getElementById('billReminderDays').value);
-            const recurring = document.getElementById('billRecurring').value;
             
             if (!name || !amount || !dueDate) {
-                alert('请填写账单名称、金额和到期日期');
+                alert('请填写完整信息');
                 return;
             }
             
@@ -888,8 +235,6 @@
                 amount: parseFloat(amount),
                 date: dueDate,
                 reminderDays: reminderDays,
-                recurring: recurring,
-                photo: currentPhotoData,
                 completed: false,
                 createdAt: new Date().toISOString()
             };
@@ -898,68 +243,209 @@
             saveTasks();
             renderTasks();
             
-            // 清空表单
             document.getElementById('billName').value = '';
             document.getElementById('billAmount').value = '';
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('billDueDate').value = today;
-            document.getElementById('billReminderDays').value = '3';
-            document.getElementById('billRecurring').value = 'none';
-            removePhoto();
-            
-            // 切换回普通任务
-            switchTaskType('task');
-            document.querySelector('.type-btn').click();
         }
 
-        function showBillDetails(taskId) {
-            const task = tasks.find(t => t.id === taskId);
-            if (!task || task.type !== 'bill') return;
-            
-            const modalBody = document.getElementById('billModalBody');
-            modalBody.innerHTML = `
-                ${task.photo ? `<img src="${task.photo}" alt="账单图片" class="bill-modal-image" />` : ''}
-                <div class="bill-details">
-                    <p><strong>账单名称：</strong>${task.text}</p>
-                    <p><strong>金额：</strong>¥${task.amount.toFixed(2)}</p>
-                    <p><strong>到期日期：</strong>${formatDate(task.date)}</p>
-                    <p><strong>提醒设置：</strong>提前${task.reminderDays}天</p>
-                    <p><strong>重复设置：</strong>${
-                        task.recurring === 'monthly' ? '每月重复' : 
-                        task.recurring === 'yearly' ? '每年重复' : '不重复'
-                    }</p>
-                    <p><strong>状态：</strong>${task.completed ? '已支付' : '待支付'}</p>
-                    ${getCountdown(task) ? `<p><strong>倒计时：</strong>${getCountdown(task).replace(/<[^>]*>/g, '')}</p>` : ''}
-                </div>
-            `;
-            
-            document.getElementById('billModal').classList.add('active');
+        function renderTasks() {
+            const container = document.getElementById('taskList');
+            const filteredTasks = filterTasks();
+
+            if (filteredTasks.length === 0) {
+                container.innerHTML = '<div class=\"empty-state\"><div class=\"icon\">' + getEmptyIcon() + '</div><div>' + getEmptyMessage() + '</div></div>';
+                return;
+            }
+
+            container.innerHTML = filteredTasks.map(task => {
+                const isBill = task.type === 'bill';
+                const countdown = getCountdown(task);
+                
+                return '<div class=\"task-item ' + (task.completed ? 'completed' : '') + ' ' + (isBill ? 'bill-item' : '') + '\" data-id=\"' + task.id + '\">' +
+                    '<div class=\"task-checkbox\" onclick=\"toggleTask(' + task.id + ')\"></div>' +
+                    '<div class=\"task-content\">' +
+                        '<div class=\"task-text\">' + (isBill ? '💳 ' : '') + task.text + '</div>' +
+                        '<div class=\"task-meta\">' +
+                            (isBill && task.amount ? '<span class=\"bill-amount\">¥' + task.amount.toFixed(2) + '</span>' : '') +
+                            (task.date ? '<span class=\"task-date\">📅 ' + formatDate(task.date) + '</span>' : '') +
+                            countdown +
+                        '</div>' +
+                    '</div>' +
+                    '<button class=\"delete-btn\" onclick=\"deleteTask(' + task.id + ')\">删除</button>' +
+                '</div>';
+            }).join('');
         }
 
-        function closeBillModal() {
-            document.getElementById('billModal').classList.remove('active');
+        function filterTasks() {
+            const today = new Date().toISOString().split('T')[0];
+            
+            switch(currentFilter) {
+                case 'today':
+                    return tasks.filter(t => !t.completed && t.date === today);
+                case 'ongoing':
+                    return tasks.filter(t => !t.completed);
+                case 'bills':
+                    return tasks.filter(t => t.type === 'bill' && !t.completed);
+                case 'overdue':
+                    return tasks.filter(t => !t.completed && t.date && t.date < today);
+                case 'upcoming':
+                    return tasks.filter(t => !t.completed && t.date && t.date > today);
+                case 'completed':
+                    return tasks.filter(t => t.completed);
+                default:
+                    return tasks;
+            }
+        }
+
+        function setFilter(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            renderTasks();
+        }
+
+        function toggleTask(id) {
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+                task.completed = !task.completed;
+                saveTasks();
+                renderTasks();
+            }
+        }
+
+        function deleteTask(id) {
+            if (confirm('确定删除？')) {
+                tasks = tasks.filter(t => t.id !== id);
+                saveTasks();
+                renderTasks();
+            }
+        }
+
+        function clearCompleted() {
+            if (confirm('清理已完成？')) {
+                tasks = tasks.filter(t => !t.completed);
+                saveTasks();
+                renderTasks();
+            }
+        }
+
+        function getCountdown(task) {
+            if (!task.date || task.completed) return '';
+            
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const dueDate = new Date(task.date);
+            dueDate.setHours(0, 0, 0, 0);
+            
+            const diffDays = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
+            
+            if (diffDays < 0) {
+                return '<span class=\"countdown overdue\">逾期' + Math.abs(diffDays) + '天</span>';
+            } else if (diffDays === 0) {
+                return '<span class=\"countdown today\">今天</span>';
+            } else if (diffDays === 1) {
+                return '<span class=\"countdown tomorrow\">明天</span>';
+            } else {
+                return '<span class=\"countdown future\">还有' + diffDays + '天</span>';
+            }
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return (date.getMonth() + 1) + '月' + date.getDate() + '日';
+        }
+
+        function updateStats() {
+            const today = new Date().toISOString().split('T')[0];
+            const ongoing = tasks.filter(t => !t.completed).length;
+            const bills = tasks.filter(t => t.type === 'bill' && !t.completed).length;
+            const completed = tasks.filter(t => t.completed).length;
+            
+            document.getElementById('ongoingCount').textContent = ongoing;
+            document.getElementById('billCount').textContent = bills;
+            document.getElementById('completedCount').textContent = completed;
         }
 
         function updateDate() {
             const now = new Date();
-            const options = { 
+            document.getElementById('currentDate').textContent = now.toLocaleString('zh-CN', { 
                 year: 'numeric', 
                 month: 'long', 
                 day: 'numeric', 
                 weekday: 'long',
                 hour: '2-digit',
                 minute: '2-digit'
-            };
-            document.getElementById('currentDate').textContent = now.toLocaleDateString('zh-CN', options);
+            });
         }
 
         function loadTasks() {
             const saved = localStorage.getItem('mobileTasks');
-            if (saved) {
-                tasks = JSON.parse(saved);
-            }
+            if (saved) tasks = JSON.parse(saved);
+        }
+
+        function saveTasks() {
+            localStorage.setItem('mobileTasks', JSON.stringify(tasks));
+            updateStats();
+        }
+
+        function exportData() {
+            const dataStr = JSON.stringify(tasks, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = '待办清单.json';
+            a.click();
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
             
-            const reminded = localStorage.getItem('remindedTasks');
-            if (reminded) {
-                remindedTasks = new Set(JSON.parse(reminded));
-            }
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (Array.isArray(imported)) {
+                        tasks = imported;
+                        saveTasks();
+                        renderTasks();
+                        alert('导入成功！');
+                    }
+                } catch (error) {
+                    alert('导入失败');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function getEmptyIcon() {
+            const icons = {
+                'today': '☀️',
+                'ongoing': '🚀',
+                'bills': '💳',
+                'overdue': '⏰',
+                'upcoming': '📅',
+                'completed': '🎉'
+            };
+            return icons[currentFilter] || '📝';
+        }
+
+        function getEmptyMessage() {
+            const messages = {
+                'today': '今天没有任务',
+                'ongoing': '没有进行中的任务',
+                'bills': '没有待付账单',
+                'overdue': '没有逾期任务',
+                'upcoming': '未来暂无安排',
+                'completed': '还没有完成的任务'
+            };
+            return messages[currentFilter] || '暂无任务';
+        }
+    </script>
+</body>
+</html>`,
+  `kind`: `other`,
+  `summaryTitle`: `修复版手机端待办清单HTML`
+}
