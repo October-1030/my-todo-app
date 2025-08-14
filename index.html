@@ -552,11 +552,18 @@
     <input type="file" id="importFile" accept=".json" onchange="importData(event)" />
 
     <script>
+        // 云端同步配置
+        const CLOUD_CONFIG = {
+            binId: '689e4597d0ea881f40595b2b',
+            apiKey: '$2a$10$c8N28a0QEXmQaJQ3HlZhQes8u9XIhy8vjHMmJ8UNmbt3dvfyuzZPC',
+            url: 'https://api.jsonbin.io/v3/b/'
+        };
+
         let tasks = [];
         let currentFilter = 'all';
         let currentTaskType = 'task';
 
-        // 简单修复时区问题的函数
+        // 获取本地日期
         function getLocalDate() {
             const now = new Date();
             const year = now.getFullYear();
@@ -565,13 +572,120 @@
             return `${year}-${month}-${day}`;
         }
 
-        window.onload = function() {
-            loadTasks();
+        // 云端同步功能
+        async function saveTasks() {
+            try {
+                // 本地备份
+                localStorage.setItem('desktopTasks', JSON.stringify(tasks));
+                localStorage.setItem('mobileTasks', JSON.stringify(tasks));
+                
+                // 云端同步
+                await saveToCloud(tasks);
+                updateStats();
+            } catch (error) {
+                console.log('云端同步失败，已保存到本地', error);
+                updateStats();
+            }
+        }
+
+        // 保存到云端
+        async function saveToCloud(data) {
+            const response = await fetch(CLOUD_CONFIG.url + CLOUD_CONFIG.binId, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Master-Key': CLOUD_CONFIG.apiKey,
+                    'X-Bin-Versioning': 'false'
+                },
+                body: JSON.stringify({
+                    tasks: data,
+                    lastUpdated: new Date().toISOString(),
+                    source: 'web'
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error('云端保存失败');
+            }
+        }
+
+        // 从云端加载
+        async function loadTasks() {
+            try {
+                // 先尝试从云端加载
+                const cloudData = await loadFromCloud();
+                if (cloudData && cloudData.tasks && Array.isArray(cloudData.tasks)) {
+                    tasks = cloudData.tasks;
+                    console.log('已从云端加载数据');
+                    return;
+                }
+            } catch (error) {
+                console.log('云端加载失败，尝试本地数据', error);
+            }
+
+            try {
+                // 备选：从本地加载
+                let saved = localStorage.getItem('mobileTasks') || 
+                           localStorage.getItem('desktopTasks');
+                
+                if (saved) {
+                    const loadedTasks = JSON.parse(saved);
+                    if (Array.isArray(loadedTasks)) {
+                        tasks = loadedTasks;
+                        console.log('已从本地加载数据');
+                    }
+                }
+            } catch (error) {
+                console.log('加载失败，使用空数据');
+                tasks = [];
+            }
+        }
+
+        // 从云端加载数据
+        async function loadFromCloud() {
+            const response = await fetch(CLOUD_CONFIG.url + CLOUD_CONFIG.binId + '/latest', {
+                method: 'GET',
+                headers: {
+                    'X-Master-Key': CLOUD_CONFIG.apiKey
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error('云端加载失败');
+            }
+            
+            const result = await response.json();
+            return result.record;
+        }
+
+        // 定期从云端同步
+        async function syncFromCloud() {
+            try {
+                const cloudData = await loadFromCloud();
+                if (cloudData && cloudData.tasks && Array.isArray(cloudData.tasks)) {
+                    // 检查是否有更新
+                    const cloudTime = new Date(cloudData.lastUpdated);
+                    const localTime = new Date(localStorage.getItem('lastSyncTime') || '2000-01-01');
+                    
+                    if (cloudTime > localTime) {
+                        tasks = cloudData.tasks;
+                        renderTasks();
+                        updateStats();
+                        localStorage.setItem('lastSyncTime', cloudData.lastUpdated);
+                        console.log('已同步云端更新');
+                    }
+                }
+            } catch (error) {
+                console.log('定期同步失败', error);
+            }
+        }
+
+        window.onload = async function() {
+            await loadTasks();
             renderTasks();
             updateStats();
             updateDate();
             
-            // 设置今天的日期
             const today = getLocalDate();
             document.getElementById('taskDate').value = today;
             document.getElementById('billDueDate').value = today;
@@ -583,6 +697,8 @@
             });
 
             setInterval(updateDate, 1000);
+            // 定期云端同步（每30秒检查一次）
+            setInterval(syncFromCloud, 30000);
         };
 
         function updateDate() {
@@ -612,18 +728,6 @@
                 document.getElementById('taskSection').style.display = 'none';
                 document.getElementById('billSection').classList.add('active');
             }
-        }
-
-        function loadTasks() {
-            const saved = localStorage.getItem('mobileTasks');
-            if (saved) {
-                tasks = JSON.parse(saved);
-            }
-        }
-
-        function saveTasks() {
-            localStorage.setItem('mobileTasks', JSON.stringify(tasks));
-            updateStats();
         }
 
         function addTask() {
@@ -730,7 +834,7 @@
         }
 
         function filterTasks() {
-            const today = getLocalDate(); // 使用本地日期
+            const today = getLocalDate();
             
             switch(currentFilter) {
                 case 'today':
@@ -779,7 +883,7 @@
         }
 
         function createNextBill(originalBill) {
-            const nextDate = new Date(originalBill.date + 'T00:00:00'); // 避免时区问题
+            const nextDate = new Date(originalBill.date + 'T00:00:00');
             
             if (originalBill.recurring === 'monthly') {
                 nextDate.setMonth(nextDate.getMonth() + 1);
@@ -825,9 +929,8 @@
             if (!task.date || task.completed) return '';
             
             const today = new Date();
-            const taskDate = new Date(task.date + 'T00:00:00'); // 避免时区问题
+            const taskDate = new Date(task.date + 'T00:00:00');
             
-            // 设置为当天0点进行比较
             today.setHours(0, 0, 0, 0);
             taskDate.setHours(0, 0, 0, 0);
             
@@ -848,7 +951,7 @@
         }
 
         function formatDate(dateStr) {
-            const date = new Date(dateStr + 'T00:00:00'); // 避免时区问题
+            const date = new Date(dateStr + 'T00:00:00');
             const month = date.getMonth() + 1;
             const day = date.getDate();
             const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
@@ -857,7 +960,7 @@
         }
 
         function updateStats() {
-            const today = getLocalDate(); // 使用本地日期
+            const today = getLocalDate();
             const ongoing = tasks.filter(t => !t.completed).length;
             const bills = tasks.filter(t => t.type === 'bill' && !t.completed).length;
             const overdue = tasks.filter(t => !t.completed && t.date && t.date < today).length;
